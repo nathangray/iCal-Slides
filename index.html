@@ -54,6 +54,18 @@
 	<p>Upload an iCal file to see this weeks events</p>
   	<input type="file" name="file" onchange="fileChanged(event)"/>
 	<div id="slides"></div>
+  <script>
+/**
+ * Load & parse a local iCal file
+ */
+function fileChanged(event) {
+	for(var i = 0; i < event.target.files.length; i++)
+	{
+		var file = event.target.files[i];
+		SlideMaker.makeSlides(file);
+	}
+}
+</script>
      </section>
       <footer>
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
