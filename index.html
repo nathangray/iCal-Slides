@@ -5,8 +5,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <!-- Date handling lib -->
-  <script type="text/javascript" src="./node_modules/moment/min/moment.min.js"></script>
-  <script type="text/javascript" src="./node_modules/moment-interval/src/moment-interval.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.2/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/luisfarzati/moment-interval/master/src/moment-interval.js"></script>
   <!-- iCal parsing -->
   <script type="text/javascript" src="./js/ijp.js"></script>
   <!-- recurrence parsing -->
@@ -33,9 +33,53 @@
       ... the markup of the footer
     </footer>
   Hey
-  <input type="file" name="file" onchange="fileChanged(event)"/>
+  <input type="file" name="file" onchange="fileChanged(event)"/><br />
+  <img src="templates/blue_flowers.svg"/>
+  <script>
+/**
+ * Load & parse a local iCal file
+ */
+function fileChanged(event) {
+	for(var i = 0; i < event.target.files.length; i++)
+	{
+		var file = event.target.files[i];
+		SlideMaker.makeSlides(file);
+	}
+}
 
+ jQuery(document).ready(function() {
+	/*
+	 * Replace all SVG images with inline SVG
+	 */
+    jQuery('img[src$=".svg"]').each(function(){
+        var $img = jQuery(this);
+        var imgID = $img.attr('id');
+        var imgClass = $img.attr('class');
+        var imgURL = $img.attr('src');
 
+        jQuery.get(imgURL, function(data) {
+            // Get the SVG tag, ignore the rest
+            var $svg = jQuery(data).find('svg');
+
+            // Add replaced image's ID to the new SVG
+            if(typeof imgID !== 'undefined') {
+                $svg = $svg.attr('id', imgID);
+            }
+            // Add replaced image's classes to the new SVG
+            if(typeof imgClass !== 'undefined') {
+                $svg = $svg.attr('class', imgClass+' replaced-svg');
+            }
+            
+            // Remove any invalid XML tags as per http://validator.w3.org
+            $svg = $svg.removeAttr('xmlns:a');
+            
+            // Replace image with new SVG
+            $img.replaceWith($svg);
+        });
+
+    });
+});
+</script>
 
 
 </body></html>

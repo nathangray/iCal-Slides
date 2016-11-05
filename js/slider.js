@@ -115,7 +115,12 @@ var SlideMaker = function() {
 		}
 		return in_range;
 	};
-
+	
+	var slideSingleEvent = function slideSingleEvent(event)
+	{
+	
+	}
+	
 	var makeSlides = function makeSlides(ical_url, start, end)
 	{
 		if(typeof start === 'undefined')
@@ -178,19 +183,6 @@ window.onload=function(){
 
 	  xhr.send();
 	}
-	//var ical = 'https://raw.githubusercontent.com/mozilla-comm/ical.js/master/samples/daily_recur.ics';
-	//var ical = 'https://raw.githubusercontent.com/mozilla-comm/ical.js/master/samples/google_birthday.ics';
-	var ical = 'http://localhost/trunk/egroupware/share.php/HVpekHRLEZqHa5b4uur1khi2B9m5ctYt';
-	SlideMaker.makeSlides(ical, moment('20110101'), moment());
 };
 
-/**
- * Load & parse a local iCal file
- */
-function fileChanged(event) {
-	for(var i = 0; i < event.target.files.length; i++)
-	{
-		var file = event.target.files[i];
-		SlideMaker.makeSlides(file);
-	}
-}
+

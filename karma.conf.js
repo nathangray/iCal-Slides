@@ -17,8 +17,8 @@ module.exports = function(config) {
     files: [
       'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js',
       'node_modules/jasmine-promises/dist/jasmine-promises.js',
-      'node_modules/moment/min/moment.min.js',
-      'node_modules/moment-interval/src/moment-interval.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.2/moment.min.js',
+      'https://cdn.rawgit.com/luisfarzati/moment-interval/master/src/moment-interval.js',
       'js/*.js',
       'test/*.js',
       // files will be served on demand from disk and will be ignored by the watcher
