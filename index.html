@@ -4,21 +4,34 @@
   <meta name="googlebot" content="noindex, nofollow">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script   src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"   integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="   crossorigin="anonymous"></script>
   <!-- Date handling lib -->
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.2/moment.min.js"></script>
   <script type="text/javascript" src="https://cdn.rawgit.com/luisfarzati/moment-interval/master/src/moment-interval.js"></script>
+  
+  <!-- Needed to actually generate images -->
+  <script type="text/javascript" src="https://cdn.rawgit.com/niklasvh/html2canvas/master/dist/html2canvas.js"></script>
+  
   <!-- iCal parsing -->
   <script type="text/javascript" src="./js/ijp.js"></script>
   <!-- recurrence parsing -->
   <script type="text/javascript" src="./js/rrule.js"></script>
   <script type="text/javascript" src="./js/nlp.js"></script>
 
+  <!-- Canvas for images 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+  -->
+  <script type="text/javascript" src="./js/html2canvas.js"></script>
+  <script type="text/javascript" src="./js/html2canvas.svg.js"></script>
+
+
   <!-- App lib -->
   <script type="text/javascript" src="./js/slider.js"></script>
 
-  <style type="text/css">
-    
-  </style>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css"/>
+  
+  <link rel="stylesheet" href="css/slides.css"/>
+  
 
   <title></title>
 
@@ -26,20 +39,48 @@
 
 
 <body>
-    <section id="todoapp">
-      ... the base markup of the application
-    </section>
+    <section id="messages"></section>
+	<fieldset>
+		<label for="template">Theme</label>
+		<select id="template" name="template" class="thumbnail">
+			<option value="plain" data-style="background-image: none;">Plain</option>
+			<option value="blue_flowers" data-style="background-image: url(&apos;images/blue_flowers.jpg&apos;);">Blue flowers</option>
+			<option value="brown_vintage" data-style="background-image: url(&apos;images/brown_vintage.jpg&apos;);">Brown vintage</option>
+			<option value="paisly_on_black" data-style="background-image: url(&apos;images/paisly_on_black.jpg&apos;);">Paisly on black</option>
+		</select>
+	</fieldset>
+	<fieldset>
+		<label for="file">Select iCal file:</label>
+		<input id="file" type="file" name="file" onchange="fileChanged(event)" class="ui-widget"/>
+	</fieldset>
+	<section id="output"></section>
     <footer id="info">
-      ... the markup of the footer
+		Click slide to download as image
     </footer>
-  Hey
-  <input type="file" name="file" onchange="fileChanged(event)"/><br />
-  <img src="templates/blue_flowers.svg"/>
   <script>
+	  $.widget( "custom.iconselectmenu", $.ui.selectmenu, {
+      _renderItem: function( ul, item ) {
+        var li = $( "<li>" ),
+          wrapper = $( "<div>", { text: item.label } );
+
+        if ( item.disabled ) {
+          li.addClass( "ui-state-disabled" );
+        }
+
+        $( "<span>", {
+          style: item.element.attr( "data-style" ),
+          "class": "ui-icon " + item.element.attr( "data-class" )
+        })
+          .appendTo( wrapper );
+
+        return li.append( wrapper ).appendTo( ul );
+      }
+    });
 /**
  * Load & parse a local iCal file
  */
 function fileChanged(event) {
+	jQuery('#output').empty();
 	for(var i = 0; i < event.target.files.length; i++)
 	{
 		var file = event.target.files[i];
@@ -48,36 +89,26 @@ function fileChanged(event) {
 }
 
  jQuery(document).ready(function() {
-	/*
-	 * Replace all SVG images with inline SVG
-	 */
-    jQuery('img[src$=".svg"]').each(function(){
-        var $img = jQuery(this);
-        var imgID = $img.attr('id');
-        var imgClass = $img.attr('class');
-        var imgURL = $img.attr('src');
+	jQuery('#template').iconselectmenu({
+		change: function() {
+			jQuery('#output').empty();
+			SlideMaker.setTemplate(this.value);
+			var file_node = jQuery('#file')[0];
+			if(file_node && file_node.files && file_node.files.length)
+			{
+				for(var i = 0; i < file_node.files.length; i++)
+				{
+					var file = file_node.files[i];
+					SlideMaker.makeSlides(file);
+				}
+			}
+		}
+	})
+		.iconselectmenu()
+		.iconselectmenu( "menuWidget" )
+        .addClass( "ui-menu-icons thumbnail" );
 
-        jQuery.get(imgURL, function(data) {
-            // Get the SVG tag, ignore the rest
-            var $svg = jQuery(data).find('svg');
-
-            // Add replaced image's ID to the new SVG
-            if(typeof imgID !== 'undefined') {
-                $svg = $svg.attr('id', imgID);
-            }
-            // Add replaced image's classes to the new SVG
-            if(typeof imgClass !== 'undefined') {
-                $svg = $svg.attr('class', imgClass+' replaced-svg');
-            }
-            
-            // Remove any invalid XML tags as per http://validator.w3.org
-            $svg = $svg.removeAttr('xmlns:a');
-            
-            // Replace image with new SVG
-            $img.replaceWith($svg);
-        });
-
-    });
+	SlideMaker.setMessageNode(document.getElementById('messages'))
 });
 </script>
 
