@@ -18,22 +18,16 @@
   <script type="text/javascript" src="./js/rrule.js"></script>
   <script type="text/javascript" src="./js/nlp.js"></script>
 
-  <!-- Canvas for images 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
-  -->
-  <script type="text/javascript" src="./js/html2canvas.js"></script>
-  <script type="text/javascript" src="./js/html2canvas.svg.js"></script>
-
-
   <!-- App lib -->
   <script type="text/javascript" src="./js/slider.js"></script>
 
+  <!-- UI niceness -->
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css"/>
   
   <link rel="stylesheet" href="css/slides.css"/>
   
 
-  <title></title>
+  <title>Event slides</title>
 
 
 
@@ -58,6 +52,7 @@
 		Click slide to download as image
     </footer>
   <script>
+	  // Renderer for theme menu
 	  $.widget( "custom.iconselectmenu", $.ui.selectmenu, {
       _renderItem: function( ul, item ) {
         var li = $( "<li>" ),
@@ -76,40 +71,42 @@
         return li.append( wrapper ).appendTo( ul );
       }
     });
-/**
- * Load & parse a local iCal file
- */
-function fileChanged(event) {
-	jQuery('#output').empty();
-	for(var i = 0; i < event.target.files.length; i++)
-	{
-		var file = event.target.files[i];
-		SlideMaker.makeSlides(file);
-	}
-}
 
- jQuery(document).ready(function() {
-	jQuery('#template').iconselectmenu({
-		change: function() {
-			jQuery('#output').empty();
-			SlideMaker.setTemplate(this.value);
-			var file_node = jQuery('#file')[0];
-			if(file_node && file_node.files && file_node.files.length)
-			{
-				for(var i = 0; i < file_node.files.length; i++)
+	/**
+	 * Load & parse a local iCal file
+	 */
+	function fileChanged(event) {
+		jQuery('#output').empty();
+		for(var i = 0; i < event.target.files.length; i++)
+		{
+			var file = event.target.files[i];
+			SlideMaker.makeSlides(file);
+		}
+	}
+
+	 jQuery(document).ready(function() {
+		jQuery('#template').iconselectmenu({
+			change: function() {
+				jQuery('#output').empty();
+				SlideMaker.setTemplate(this.value);
+				var file_node = jQuery('#file')[0];
+				if(file_node && file_node.files && file_node.files.length)
 				{
-					var file = file_node.files[i];
-					SlideMaker.makeSlides(file);
+					for(var i = 0; i < file_node.files.length; i++)
+					{
+						var file = file_node.files[i];
+						SlideMaker.makeSlides(file);
+					}
 				}
 			}
-		}
-	})
-		.iconselectmenu()
-		.iconselectmenu( "menuWidget" )
-        .addClass( "ui-menu-icons thumbnail" );
+		})
+			.iconselectmenu()
+			.iconselectmenu( "menuWidget" )
+			.addClass( "ui-menu-icons thumbnail" );
 
-	SlideMaker.setMessageNode(document.getElementById('messages'))
-});
+		// Tell it where to put messages
+		SlideMaker.setMessageNode(document.getElementById('messages'));
+	});
 </script>
 
 

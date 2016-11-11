@@ -54,7 +54,7 @@ var SlideMaker = function() {
 				//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
 					'</svg>';
 		//var svg = jQuery(data).appendTo('body')[0];
-		var img = jQuery("<img src='data:image/svg+xml;base64,"+svgEncode(data)+"'/>").appendTo('body')[0];
+		var img = jQuery("<img src='data:image/svg+xml;base64,"+_svgEncode(data)+"'/>").appendTo('body')[0];
 
 		var canvas = jQuery('<canvas/>')[0];
 		canvas.width = clone.outerWidth();
@@ -76,18 +76,31 @@ var SlideMaker = function() {
 	};
 
 	/**
+	 * Encode an SVG so we can further use it
+	 *
+	 * @param {String} svg
+	 * @returns {String} Base64 encoded svg
+	 */
+	_svgEncode = function svgEncode(svg)
+	{
+		var txt = svg
+        .replace('<svg',(~svg.indexOf('xmlns')?'<svg':'<svg xmlns="http://www.w3.org/2000/svg"'))
+
+		return btoa(txt);
+	};
+
+	/**
 	 * Download the given element as a file
 	 * 
-	 * @param {type} element
-	 * @param {type} filename
-	 * @returns {undefined}
+	 * @param {String} data objectURL or data url to download
+	 * @param {String} filename
 	 */
-	_download: function _download(element, filename) {
+	_download: function _download(data, filename) {
 		var pom = document.createElement('a');
 
-		pom.setAttribute('href',element);
+		pom.setAttribute('href',data);
 		pom.setAttribute('download', filename);
-//return pom;
+		
 		if (document.createEvent) {
 			var event = document.createEvent('MouseEvents');
 			event.initEvent('click', true, true);
@@ -98,8 +111,32 @@ var SlideMaker = function() {
 		}
 	};
 
+	_message: function _message(message, type) {
+		var stateClass = '';
+		var icon = 'ui-icon-info';
+		if(type == 'warning')
+		{
+			stateClass = 'ui-state-highlight';
+		}
+		else if(type == 'error')
+		{
+			stateClass = 'ui-state-error';
+			icon = 'ui-icon-alert';
+		}
+		var msg = '<div class="ui-widget"><span class="ui-icon ui-icon-close" style="float: right; margin-top: 10px; margin-right: 20px; "></span>'+
+			'<div class="' + stateClass + ' ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">' +
+				'<p><span class="ui-icon '+ icon + '" style="float: left; margin-right: .3em;"></span>' +
+				message + '</p></div></div>';
+
+		jQuery(msg).appendTo(messageNode)
+				.on('click','.ui-icon-close', function() {
+					jQuery(this).parent().remove();
+				});
+		
+	};
+
 	/**
-	 * Read and parse an iCal file from the provided URL
+	 * Read and parse an iCal file from the provided remote URL
 	 *
 	 * @param {String} file
 	 * @param {moment|Date} start
@@ -298,6 +335,15 @@ var SlideMaker = function() {
 		return event;
 	};
 
+	/**
+	 * Set the template for the slides
+	 *
+	 * The SVG needs the styles inlined, so we load just the particular CSS for
+	 * the theme, and store it so we can stuff it into the SVG
+	 *
+	 * @param {String} template - Needs to match a css file in css/templates directory
+	 * @returns {undefined}
+	 */
 	setTemplate = function setTemplate(template)
 	{
 		template_set = template;
@@ -319,32 +365,12 @@ var SlideMaker = function() {
 			else
 			{
 				templateCSS = '';
+				_message('Unable to load template ' + template, 'error');
 			}
 		};
 		xhr.send();
 	};
 
-	svgEncode = function svgEncode(svg)
-	{
-		var txt = svg
-        .replace('<svg',(~svg.indexOf('xmlns')?'<svg':'<svg xmlns="http://www.w3.org/2000/svg"'))
-
-        //
-        //   Encode (may need a few extra replacements)
-        //
-		/*
-        .replace(/"/g, '\'')
-        .replace(/%/g, '%25')
-        .replace(/#/g, '%23')
-        .replace(/{/g, '%7B')
-        .replace(/}/g, '%7D')
-        .replace(/</g, '%3C')
-        .replace(/>/g, '%3E')
-
-        .replace(/\s+/g,' ');
-		*/
-		return btoa(txt);
-	}
 	/**
 	 * Generate the DOM nodes for a slide for a single event
 	 *
@@ -381,10 +407,7 @@ var SlideMaker = function() {
 		var _makeSlides = function _makeSlides(events)
 		{
 			var target = jQuery('#output');;
-			if(messageNode)
-			{
-				messageNode.append('<span>'+start.format(dateFormat) + ' - ' + end.format(dateFormat) + ': ' + events.length + ' events found</span>');
-			}
+			_message(start.format(dateFormat) + ' - ' + end.format(dateFormat) + ': ' + events.length + ' events found');
 			if(!events.length)
 			{
 				return;
@@ -404,7 +427,7 @@ var SlideMaker = function() {
 				.then(function(events) {
 					// Make slides
 					_makeSlides(events);
-				});
+				}, function() {_message('Unable to load ' + ical_url, 'error')});
 		}
 		else if (typeof ical_url.name === 'string')
 		{
@@ -412,7 +435,7 @@ var SlideMaker = function() {
 				.then(function(events) {
 					// Make slides
 					_makeSlides(events);
-				});
+				}, function() {_message('Unable to load file', 'error')});
 		}
 	};
 
@@ -427,6 +450,8 @@ var SlideMaker = function() {
 		makeSlides: makeSlides,
 		setMessageNode: function setMessageNode(node) {
 			messageNode = jQuery(node);
+			_message('Hey');
+			_message('Error', 'error');
 		},
 		setTemplate: setTemplate,
 	};
