@@ -112,13 +112,9 @@ var SlideMaker = function() {
 	};
 
 	_message: function _message(message, type) {
-		var stateClass = '';
+		var stateClass = 'ui-state-highlight';
 		var icon = 'ui-icon-info';
-		if(type == 'warning')
-		{
-			stateClass = 'ui-state-highlight';
-		}
-		else if(type == 'error')
+		if(type == 'error')
 		{
 			stateClass = 'ui-state-error';
 			icon = 'ui-icon-alert';
@@ -450,8 +446,6 @@ var SlideMaker = function() {
 		makeSlides: makeSlides,
 		setMessageNode: function setMessageNode(node) {
 			messageNode = jQuery(node);
-			_message('Hey');
-			_message('Error', 'error');
 		},
 		setTemplate: setTemplate,
 	};
