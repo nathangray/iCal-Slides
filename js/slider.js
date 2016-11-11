@@ -35,6 +35,47 @@ var SlideMaker = function() {
 	};
 
 	/**
+	 * Take the provided element, turn it into an image, and download it
+	 * 
+	 * @param {DOMNode} element
+	 */
+	_makeImage = function _makeImage(element) {
+
+		// Clone out of thumbnail to get proper height
+		var clone = jQuery(element).clone().appendTo('body');
+
+		var data   = "<svg xmlns='http://www.w3.org/2000/svg' width='"+clone.outerWidth() + "' height='"+clone.outerHeight() + "'>" +
+						"<foreignObject width='100%' height='100%'>" +
+							"<div xmlns='http://www.w3.org/1999/xhtml' >" +
+							"<style>"+templateCSS+"</style>" +
+							element.outerHTML+
+							'</div>' +
+					   '</foreignObject>' +
+				//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
+					'</svg>';
+		//var svg = jQuery(data).appendTo('body')[0];
+		var img = jQuery("<img src='data:image/svg+xml;base64,"+svgEncode(data)+"'/>").appendTo('body')[0];
+
+		var canvas = jQuery('<canvas/>')[0];
+		canvas.width = clone.outerWidth();
+		canvas.height = clone.outerHeight();
+
+		var ctx = canvas.getContext('2d');
+
+		img.onload = function () {
+			ctx.drawImage(img, 0, 0);
+
+			canvas.toBlob(function(blob) {
+				_download(URL.createObjectURL(blob), 'slide.png');
+			});
+
+			img.remove();
+		};
+
+		clone.remove();
+	};
+
+	/**
 	 * Download the given element as a file
 	 * 
 	 * @param {type} element
@@ -353,51 +394,8 @@ var SlideMaker = function() {
 				slideSingleEvent(events[i]).appendTo(target).wrap('<div class="thumbnail"></div>');
 			}
 
-			target.on('click', '.slide', function() {
-				// Clone out of thumbnail to get proper height
-				var clone = jQuery(this).clone().appendTo('body');
-				
-				var data   = "<svg xmlns='http://www.w3.org/2000/svg' width='"+clone.outerWidth() + "' height='"+clone.outerHeight() + "'>" +
-								"<foreignObject width='100%' height='100%'>" +
-									"<div xmlns='http://www.w3.org/1999/xhtml' >" +
-									"<style>"+templateCSS+"</style>" +
-									this.outerHTML+
-									'</div>' +
-							   '</foreignObject>' +
-						//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
-							'</svg>';
-				var svg = jQuery(data).appendTo('body')[0];
-				var img = jQuery("<img src='data:image/svg+xml;base64,"+svgEncode(data)+"'/>").appendTo('body')[0];
-
-				var canvas = jQuery('<canvas/>')
-						.appendTo('body')[0];
-				canvas.width = clone.outerWidth();
-				canvas.height = clone.outerHeight();
-				
-				//var data = (new XMLSerializer()).serializeToString(svg);
-				var DOMURL = window.URL || window.webkitURL || window;
-				var ctx = canvas.getContext('2d');
-
-				//var img = new Image();
-				//img.setAttribute('crossOrigin', 'anonymous');
-				//var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-				//var url = DOMURL.createObjectURL(svgBlob);
-
-				img.onload = function () {
-				  ctx.drawImage(img, 0, 0);
-				  //DOMURL.revokeObjectURL(url);
-
-				  var imgURI = canvas
-					  .toDataURL('image/png')
-					  .replace('image/png', 'image/octet-stream');
-
-				  _download(imgURI);
-				};
-
-				//img.src = url;
-				clone.remove();
-			});
-		};
+			target.on('click', '.slide', function() { _makeImage(this);});
+		}
 
 		// Load events
 		if(typeof ical_url === 'string')
