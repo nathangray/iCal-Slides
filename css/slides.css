@@ -75,5 +75,6 @@
 }
 .thumbnail .slide {
   transform: translate(-40%, -40%) scale(0.15);
+  cursor: pointer;
 }
 /*# sourceMappingURL=slides.css.map */
