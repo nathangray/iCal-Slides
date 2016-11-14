@@ -137,6 +137,7 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		if($_GET.template)
 		{
 			jQuery('#template').val($_GET.template);
+			SlideMaker.setTemplate($_GET.template);
 		}
 
 		jQuery('#template').iconselectmenu({
