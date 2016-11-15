@@ -119,9 +119,9 @@ var SlideMaker = function() {
 			stateClass = 'ui-state-error';
 			icon = 'ui-icon-alert';
 		}
-		var msg = '<div class="ui-widget"><span class="ui-icon ui-icon-close" style="float: right; margin-top: 10px; margin-right: 20px; "></span>'+
+		var msg = '<div class="ui-widget"><span class="ui-icon ui-icon-close" style="float: right; margin-top: 2px; margin-right: 2px; "></span>'+
 			'<div class="' + stateClass + ' ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">' +
-				'<p><span class="ui-icon '+ icon + '" style="float: left; margin-right: .3em;"></span>' +
+				'<p><span class="ui-icon '+ icon + '" style="float: left; margin-right: 0.3em; margin-top:0.3em;"></span>' +
 				message + '</p></div></div>';
 
 		jQuery(msg).appendTo(messageNode)
