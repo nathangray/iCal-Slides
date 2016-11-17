@@ -4,4 +4,12 @@
   width: 1280px;
   height: 800px;
 }
+.slide.brown_vintage .summary {
+  margin-bottom: 2ex;
+}
+.slide.brown_vintage .time {
+  position: absolute;
+  left: 3ex;
+  top: 2.5em;
+}
 /*# sourceMappingURL=brown_vintage.css.map */
