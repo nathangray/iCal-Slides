@@ -18,6 +18,8 @@
 		width: 100%;
 
 		margin: 1ex;
+		
+		z-index: 10;
 	}
 
 	span.summary {
@@ -41,6 +43,12 @@
 	/* P is used for linebreaks, since <br /> is invalid in SVG */
 	p {
 		margin: 0px;
+	}
+
+	div.attach {
+		width: 100%;
+		height: 100%;
+		background-repeat:no-repeat;
 	}
 }
 @import "/templates/blue_flowers.less";
@@ -68,10 +76,22 @@
 	max-height: 250px;
 }
 #output .thumbnail {
-	max-width: 350px;
+	overflow:hidden;
+	height: 200px;
+	width: 300px;
+	position: relative;
+	flex: 1 0 auto;
 }
 
 .thumbnail .slide {
-	transform: translate(-40%, -40%) scale(0.15);
+	transform-origin: top left;
+	transform: scale(0.15);
 	cursor: pointer;
+
+	transition: 0.5s;
+
+	&:hover {
+		transform: scale(0.20);
+		z-index: 10;
+	}
 }
