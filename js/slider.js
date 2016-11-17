@@ -46,10 +46,10 @@ var SlideMaker = function() {
 
 		var data   = "<svg xmlns='http://www.w3.org/2000/svg' width='"+clone.outerWidth() + "' height='"+clone.outerHeight() + "'>" +
 						"<foreignObject width='100%' height='100%'>" +
-							"<div xmlns='http://www.w3.org/1999/xhtml' >" +
+							"<body xmlns='http://www.w3.org/1999/xhtml' >" +
 							"<style>"+templateCSS+"</style>" +
 							element.outerHTML+
-							'</div>' +
+							'</body>' +
 					   '</foreignObject>' +
 				//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
 					'</svg>';
@@ -324,8 +324,11 @@ var SlideMaker = function() {
 			}
 			*/
 
-			// For HTML
-		    value = value.replace(/\\n/g,'<br />');
+			// For HTML - <br /> does not work inside SVG
+			if(value.indexOf('\\n') !== -1)
+			{
+				value = '<p>'+value.replace(/\\n/g,'</p><p>')+'</p>';
+			}
 			event[fields[i]] = value;
 		}
 		return event;
