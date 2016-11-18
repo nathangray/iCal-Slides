@@ -75,7 +75,7 @@ The idea is you can then use these slides in presentation to announce upcoming e
 	</fieldset>
 	<div id="output"></div>
 	<p>Click slide to download as image</p>
-	<p>Or, try some pre-built examples:<ul>
+	<p>Try some pre-built examples:<ul>
 	<li><a href="index.html?template=brown_vintage&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/daily_recur.ics&from=2012-10-01&to=2012-12-01">Daily</a></li>
 	<li><a href="index.html?template=blue_flowers&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/recur_instances_finite.ics&from=2012-10-01&to=2012-12-01">Recurrence with end date</a></li>
 	<li><a href="index.html?template=paisly_on_black&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/multi_line.ics">Multi-line descriptions</a></li>
@@ -182,35 +182,6 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		}
 	});
 </script>
-		<h3>
-		<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How it works</h3>
-		<p>
-			To generate the slides, it takes a few steps.
-		</p>
-		<h4>Parse the iCal</h4>
-		<p>Thanks to the iCal Parser library (see requirements), parsing the file into objects is easy.  Some special consideration is needed for recurring events,
-			which is why RRule is used.  The event information for each recurrence in the time frame is copied, with the appropriate date changes.
-		</p>
-		<h4>Generate the slides</h4>
-		<p>For each event, the slides are generated in the page DOM as HTML elements, and styled using the theme's CSS.  You can right-click on the thumbnail to inspect
-			the parts - it's just a div. </p>
-		<h4>Generate the image</h4>
-		<p>This is the impossible part.  When you click on the thumbnail, an image file is generated and downloaded.  To go from DOM Nodes to an image file, first an
-			SVG is created, using foreignObject to inline the slide's nodes.  It's style is also inlined, including the background image - this is important, otherwise
-			we end up with just text at the top of the image.  The SVG is then converted to PNG, and the browser is told to download the PNG file.
-		<h3>
-		<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements</h3>
-		<p>
-		If you want to download and run it locally, it must be served - it cannot be run straight from the filesystem or you'll get security errors, and the downloaded images will not look right.
-		This script requires:
-		<ul><li>iCal Parser - https://github.com/peterbraden/ical.js (copied & included)</li>
-			<li>RRule & NLP - https://github.com/jkbrzt/rrule (copied & included)</li>
-			<li>jQuery - http://jquery.com</li>
-			<li>jQueryUI - http://jqueryui.com</li>
-			<li>Moment - http://momentjs.com</li>
-			<li>Moment Interval - https://github.com/luisfarzati/moment-interval</li>
-		</ul>
-		</p>
      </section>
 
       <footer>
