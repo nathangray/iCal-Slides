@@ -12,4 +12,13 @@
   left: 3ex;
   top: 2.5em;
 }
+.slide.brown_vintage div.attach {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  height: 470px;
+  width: 800px;
+  background-size: contain;
+  filter: sepia(40%);
+}
 /*# sourceMappingURL=brown_vintage.css.map */

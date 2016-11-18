@@ -5,4 +5,19 @@
   background-size: auto;
   width: 1200px;
   height: 900px;
+
+	div.attach {
+		&:after {
+			content: '';
+			background-image: data-uri('../../images/orange_flower.png');
+			background-size: contain;
+			background-repeat: no-repeat;
+
+			position: absolute;
+			bottom: -40px;
+			left: -40px;
+			width: 400px;
+			height: 400px;
+		}
+	}
 }
