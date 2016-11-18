@@ -151,17 +151,18 @@ The idea is you can then use these slides in presentation to announce upcoming e
 				jQuery('#output').empty();
 				SlideMaker.setTemplate(this.value);
 				var file_node = jQuery('#file')[0];
+				var file = $_GET.iCal;
 				if(file_node && file_node.files && file_node.files.length)
 				{
 					for(var i = 0; i < file_node.files.length; i++)
 					{
-						var file = file_node.files[i];
-						SlideMaker.makeSlides(file,
-							moment(jQuery('#start_date').val()),
-							moment(jQuery('#end_date').val())
-						);
+						file = file_node.files[i];
 					}
 				}
+				SlideMaker.makeSlides(file,
+					moment(jQuery('#start_date').val()),
+					moment(jQuery('#end_date').val())
+				);
 			}
 		})
 			.iconselectmenu()
