@@ -12,7 +12,7 @@
   left: 3ex;
   top: 2.5em;
 }
-.slide.brown_vintage div.attach {
+.slide.brown_vintage .attach {
   position: absolute;
   bottom: 0px;
   left: 0px;
@@ -20,5 +20,33 @@
   width: 800px;
   background-size: contain;
   filter: sepia(40%);
+}
+.slide.brown_vintage .attach:not(:first-of-type) {
+  width: 400px;
+  height: 240px;
+  right: 0px;
+  left: auto;
+  bottom: auto;
+  background-position: center center;
+  background-size: cover;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: top right;
+}
+.slide.brown_vintage .attach:not(:first-of-type):nth-of-type(2) {
+  top: 0%;
+}
+.slide.brown_vintage .attach:not(:first-of-type):nth-of-type(3) {
+  top: 33%;
+}
+.slide.brown_vintage .attach:not(:first-of-type):nth-of-type(4) {
+  top: 66%;
+}
+.slide.brown_vintage .attach:not(:first-of-type):after {
+  content: '';
+  width: 400px;
+  height: 240px;
+  display: block;
+  background-image: url(../../images/vintage_frame.png);
 }
 /*# sourceMappingURL=brown_vintage.css.map */

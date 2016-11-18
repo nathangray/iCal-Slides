@@ -13,15 +13,45 @@
 	left: 3ex;
 	top: 2.5em;
   }
-  div.attach {
-	position: absolute;
-    bottom: 0px;
-    left: 0px;
-    height: 470px;
-    width: 800px;
-    background-size: contain;
-	
-	filter: sepia(40%);
-  }
+	.attach {
+		position: absolute;
+		bottom: 0px;
+		left: 0px;
+		height: 470px;
+		width: 800px;
+		background-size: contain;
+
+		filter: sepia(40%);
+	}
+	.attach:not(:first-of-type) {
+		width: 400px;
+		height: 240px;
+		right: 0px;
+		left: auto;
+		bottom: auto;
+		background-position: center center;
+		background-size: cover;
+		//-webkit-mask-image: url(../../images/vintage_frame.png);
+		-webkit-mask-size: contain;
+		-webkit-mask-repeat: no-repeat;
+		-webkit-mask-position: top right;
+
+		&:nth-of-type(2) {
+			top: 0%;
+		}
+		&:nth-of-type(3) {
+			top: 33%;
+		}
+		&:nth-of-type(4) {
+			top: 66%;
+		}
+		&:after {
+			content: '';
+			width: 400px;
+			height: 240px;
+			display: block;
+			background-image: url(../../images/vintage_frame.png);
+		}
+	}
 }
 

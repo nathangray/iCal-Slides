@@ -10,7 +10,6 @@
 
 	font-size: 40px;
 
-	padding: 2.5%;
 	border: 1px solid;
 
 	position: relative;
@@ -47,10 +46,16 @@
 		margin: 0px;
 	}
 
-	div.attach {
+	.attach {
 		width: 100%;
 		height: 100%;
 		background-repeat:no-repeat;
+		background-size: contain;
+		z-index: -1;
+	}
+
+	.attach:not(:first-of-type) {
+		width: 25%;
 	}
 }
 @import "/templates/blue_flowers.less";

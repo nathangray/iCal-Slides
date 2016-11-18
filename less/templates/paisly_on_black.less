@@ -2,7 +2,7 @@
   background-image: data-uri('../../images/paisly_on_black.jpg');
   color: #eeeeee;
 
-  div.attach {
+  .attach {
 	  background-position: top right;
 	  
 	  width: 50%;
@@ -13,6 +13,21 @@
 	  right: 0px;
 
 	  filter: grayscale(40%);
-
   }
+
+	.attach:not(:first-of-type) {
+		width: 25%;
+		height: 25%;
+		top: auto;
+		bottom: -10px;
+		&:nth-of-type(2) {
+			left: 0%;
+		}
+		&:nth-of-type(3) {
+			left: 25%;
+		}
+		&:nth-of-type(4) {
+			left: 50%;
+		}
+	}
 }

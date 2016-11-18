@@ -49,26 +49,31 @@ var SlideMaker = function() {
 	 */
 	_getAttachments = function _getAttachments(event) {
 
-		var attach = (typeof event.attach.length === 'undefined') ? [event.attach] : event.attach;
-		//return new Promise(function (resolve, reject) {
-			for(var i = 0; i < attach.length; i++)
+		event.attach = (typeof event.attach.length === 'undefined') ? [event.attach] : event.attach;
+		var gd_regex = new RegExp(/drive\.google.[\D]+\/file\/d\/(\S+)\//);
+		for(var i = 0; i < event.attach.length; i++)
+		{
+			var attachment = event.attach[i].value;
+			if(attachment.match(/\.(jpg|jpeg|png)$/))
 			{
-				var attachment = attach[i].value;
-				if(attachment.match(/\.(jpg|jpeg|png)$/))
+				// It's at least supposed to be an image, let browser load it
+				event.attach[i] = attachment;
+				continue;
+			}
+			else if (attachment.match(gd_regex))
+			{
+				// Google drive image
+				var result = gd_regex.exec(attachment);
+				if(result[1])
 				{
-					// It's at least supposed to be an image, let browser load it
-				}
-				else
-				{
-					var iframe = jQuery('<iframe src="' + attachment + '"></iframe>').appendTo('body');
-
-					debugger;
-					_message('Could not load attachment for "' + event.summary.value + '": ' + attachment.value);
-					attachment.value = '';
+					event.attach[i] = 'https://drive.google.com/uc?export=download&id='+result[1];
+					_message('Google drive images cannot be exported (' + event.summary.value +')','error');
+					continue;
 				}
 			}
-
-		//});
+			_message('Could not load attachment for "' + event.summary.value + '": ' + attachment.value);
+			attachment.value = '';
+		}
 	};
 
 	/**
@@ -117,7 +122,7 @@ var SlideMaker = function() {
 						   '</foreignObject>' +
 					//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
 						'</svg>';
-			//var svg = jQuery(data).appendTo('body')[0];
+			var svg = jQuery(data).appendTo('body')[0];
 			var img = jQuery("<img src='data:image/svg+xml;base64,"+_svgEncode(data)+"'/>").appendTo('body')[0];
 
 			var canvas = jQuery('<canvas/>')[0];
@@ -462,7 +467,10 @@ var SlideMaker = function() {
 			switch(fields[i])
 			{
 				case 'attach':
-					template.append('<div class="' + fields[i]+'" style="background-image: url(\'' + value + '\');"></div>');
+					for(var j = 0; j < value.length; j++)
+					{
+						template.append('<div class="' + fields[i]+'" style="background-image: url(\'' + value[j] + '\');"></div>');
+					}
 					break;
 				default:
 					template.append('<span class="'+fields[i]+'">' + value + '</span>');
@@ -472,9 +480,24 @@ var SlideMaker = function() {
 		return template;
 		
 	};
-	
+
+	/**
+	 * Make a bunch of slides
+	 *
+	 * The iCal is parsed, events extracted, and slided generated.
+	 * The slides will be put in a div with the ID 'output':
+	 * <div id="output"/>
+	 *
+	 * @param {String|File} ical_url iCal events.  Either a URL for a file, or a File object from a user upload
+	 * @param {moment|Date} [start] Start making slides for events after this date
+	 * @param {moment|Date} [end] End date
+	 */
 	makeSlides = function makeSlides(ical_url, start, end)
 	{
+		// Clear messages from last time
+		messageNode.empty();
+
+		// Set dates if not provided
 		if(typeof start === 'undefined')
 		{
 			start = moment().startOf('week');
@@ -539,7 +562,7 @@ window.onload=function(){
 	function fetchImage() {
 
 	  var xhr = new XMLHttpRequest();
-	  xhr.open('GET', 'https://raw.githubusercontent.com/mozilla-comm/ical.js/master/samples/daily_recur.ics', true);
+	  xhr.open('GET', 'https://drive.google.com/uc?export=download&id=0B6lktfjnRa00QW40WjI3cG5TcDA', true);
 	  xhr.responseType = 'blob';
 
 	  xhr.onload = function(e) {

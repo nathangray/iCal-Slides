@@ -6,8 +6,14 @@
   width: 1200px;
   height: 900px;
 
-	div.attach {
-		&:after {
+	.attach {
+		position: absolute;
+		bottom: 0px;
+		left: 0px;
+		height: 470px;
+		width: 800px;
+		
+		&:first-of-type:after {
 			content: '';
 			background-image: data-uri('../../images/orange_flower.png');
 			background-size: contain;
@@ -18,6 +24,29 @@
 			left: -40px;
 			width: 400px;
 			height: 400px;
+		}
+	}
+	.attach:not(:first-of-type) {
+		width: 325px;
+		height: 40%;
+		right: 0px;
+		left: auto;
+		bottom: auto;
+		background-size:cover;
+		background-position: center center;
+		-webkit-mask-image: url(../../images/orange_flower.png);
+		-webkit-mask-size: contain;
+		-webkit-mask-repeat: no-repeat;
+		-webkit-mask-position: top right;
+		
+		&:nth-of-type(2) {
+			top: 0%;
+		}
+		&:nth-of-type(3) {
+			top: 25%;
+		}
+		&:nth-of-type(4) {
+			top: 50%;
 		}
 	}
 }
