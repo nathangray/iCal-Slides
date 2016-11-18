@@ -96,9 +96,9 @@ var SlideMaker = function() {
 				canvas.height = original.height();
 				canvas.width = original.width();
 				ctx.drawImage(this, 0, 0);
-			  debugger;
+				
 				original.css('background-image','url(' + canvas.toDataURL('image/png') + ')');
-				//original.style.backgroundImage = 'url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==)'
+				
 				promise.resolve();
 			};
 			img.src = this.style.backgroundImage.substring(5, this.style.backgroundImage.length - 2);
@@ -117,7 +117,7 @@ var SlideMaker = function() {
 						   '</foreignObject>' +
 					//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
 						'</svg>';
-			var svg = jQuery(data).appendTo('body')[0];
+			//var svg = jQuery(data).appendTo('body')[0];
 			var img = jQuery("<img src='data:image/svg+xml;base64,"+_svgEncode(data)+"'/>").appendTo('body')[0];
 
 			var canvas = jQuery('<canvas/>')[0];
