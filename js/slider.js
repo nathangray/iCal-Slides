@@ -1,8 +1,11 @@
 var SlideMaker = function() {
+
+	var RECUR_LIMIT = 50;
+	
 	var messageNode;
 	var dateFormat = 'dddd LL';
 	var template_set = 'plain';
-	var fields = ['summary','description', 'start', 'end', 'time', 'duration', 'recurrence'];
+	var fields = ['summary','description', 'start', 'end', 'time', 'duration', 'recurrence', 'attach'];
 
 	var baseCSS = '';
 	var templateCSS = '';
@@ -35,6 +38,40 @@ var SlideMaker = function() {
 	};
 
 	/**
+	 * Resolve one (or more?) attached files.
+	 *
+	 * Mostly we care about images, I guess.
+	 *
+	 * The value is checked and the URL for the actual image (looking at you,
+	 * Google) is found if the url is not to an image
+	 *
+	 * @param {Object} event
+	 */
+	_getAttachments = function _getAttachments(event) {
+
+		var attach = (typeof event.attach.length === 'undefined') ? [event.attach] : event.attach;
+		//return new Promise(function (resolve, reject) {
+			for(var i = 0; i < attach.length; i++)
+			{
+				var attachment = attach[i].value;
+				if(attachment.match(/\.(jpg|jpeg|png)$/))
+				{
+					// It's at least supposed to be an image, let browser load it
+				}
+				else
+				{
+					var iframe = jQuery('<iframe src="' + attachment + '"></iframe>').appendTo('body');
+
+					debugger;
+					_message('Could not load attachment for "' + event.summary.value + '": ' + attachment.value);
+					attachment.value = '';
+				}
+			}
+
+		//});
+	};
+
+	/**
 	 * Take the provided element, turn it into an image, and download it
 	 * 
 	 * @param {DOMNode} element
@@ -44,35 +81,63 @@ var SlideMaker = function() {
 		// Clone out of thumbnail to get proper height
 		var clone = jQuery(element).clone().appendTo('body');
 
-		var data   = "<svg xmlns='http://www.w3.org/2000/svg' width='"+clone.outerWidth() + "' height='"+clone.outerHeight() + "'>" +
-						"<foreignObject width='100%' height='100%'>" +
-							"<body xmlns='http://www.w3.org/1999/xhtml' >" +
-							"<style>"+templateCSS+"</style>" +
-							element.outerHTML+
-							'</body>' +
-					   '</foreignObject>' +
-				//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
-					'</svg>';
-		//var svg = jQuery(data).appendTo('body')[0];
-		var img = jQuery("<img src='data:image/svg+xml;base64,"+_svgEncode(data)+"'/>").appendTo('body')[0];
+		// Any images need encoding
+		var images = [];
+		jQuery('div.attach[style*="background-image: url(\'http"]', clone).each(function() {
+			var promise = jQuery.Deferred();
+			images.push(promise);
+			
+			var original = jQuery(this);
+			var img = new Image();
+			img.crossOrigin = 'Anonymous';
+			img.onload = function() {
+				var canvas = document.createElement('CANVAS');
+				var ctx = canvas.getContext('2d');
+				canvas.height = original.height();
+				canvas.width = original.width();
+				ctx.drawImage(this, 0, 0);
+				
+				original.css('background-image','url(' + canvas.toDataURL('image/png') + ')');
+				
+				promise.resolve();
+			};
+			img.src = this.style.backgroundImage.substring(5, this.style.backgroundImage.length - 2);
+		});
+		
+		// Wait for images to load
+		$.when.apply($,images).done(function() {
 
-		var canvas = jQuery('<canvas/>')[0];
-		canvas.width = clone.outerWidth();
-		canvas.height = clone.outerHeight();
+			// Generate SVG
+			var data   = "<svg xmlns='http://www.w3.org/2000/svg' width='"+clone.outerWidth() + "' height='"+clone.outerHeight() + "'>" +
+							"<foreignObject width='100%' height='100%'>" +
+								"<body xmlns='http://www.w3.org/1999/xhtml' >" +
+								"<style>"+templateCSS+"</style>" +
+								clone[0].outerHTML+
+								'</body>' +
+						   '</foreignObject>' +
+					//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
+						'</svg>';
+			//var svg = jQuery(data).appendTo('body')[0];
+			var img = jQuery("<img src='data:image/svg+xml;base64,"+_svgEncode(data)+"'/>").appendTo('body')[0];
 
-		var ctx = canvas.getContext('2d');
+			var canvas = jQuery('<canvas/>')[0];
+			canvas.width = clone.outerWidth();
+			canvas.height = clone.outerHeight();
 
-		img.onload = function () {
-			ctx.drawImage(img, 0, 0);
+			var ctx = canvas.getContext('2d');
 
-			canvas.toBlob(function(blob) {
-				_download(URL.createObjectURL(blob), 'slide.png');
-			});
+			img.onload = function () {
+				ctx.drawImage(img, 0, 0);
 
-			img.remove();
-		};
+				canvas.toBlob(function(blob) {
+					_download(URL.createObjectURL(blob), 'slide.png');
+				});
 
-		clone.remove();
+				img.remove();
+			};
+
+			clone.remove();
+		});
 	};
 
 	/**
@@ -84,7 +149,7 @@ var SlideMaker = function() {
 	_svgEncode = function svgEncode(svg)
 	{
 		var txt = svg
-        .replace('<svg',(~svg.indexOf('xmlns')?'<svg':'<svg xmlns="http://www.w3.org/2000/svg"'))
+        .replace('<svg',(~svg.indexOf('xmlns')?'<svg':'<svg xmlns="http://www.w3.org/2000/svg"'));
 
 		return btoa(txt);
 	};
@@ -226,6 +291,10 @@ var SlideMaker = function() {
 				event.duration = moment.interval(event.start, moment.duration(event.duration.value));
 				event.end = event.duration.end();
 			}
+			if(event.attach)
+			{
+				_getAttachments(event);
+			}
 
 			if(event.rrule)
 			{
@@ -259,7 +328,13 @@ var SlideMaker = function() {
 				}
 				var recurring = set.between(start.toDate(), end.toDate());
 				var duration = event.end.diff(event.start, 'minutes');
-				for(var j = 0; j < recurring.length; j++)
+
+				// We'll do the recurrences, but limited to 50
+				if(recurring.length > RECUR_LIMIT)
+				{
+					_message('Recurrence limit hit (' + RECUR_LIMIT + ') on "' + event.summary.value +'"', 'error');
+				}
+				for(var j = 0; j < recurring.length && j < RECUR_LIMIT; j++)
 				{
 					var recurrence = jQuery.extend(true, {}, event);
 					recurrence.start = moment(moment(recurring[j]));
@@ -286,9 +361,8 @@ var SlideMaker = function() {
 	 * @param {Object} event
 	 * @returns {Object} modified event
 	 */
-	massageEvent = function massageEvent(unchanged_event, template)
+	massageEvent = function massageEvent(event, template)
 	{
-		var event = jQuery.extend(true, {}, unchanged_event);
 
 		// Extra fields
 		var duration = moment.duration(event.end.diff(event.start, 'minutes'),'minutes');
@@ -383,9 +457,16 @@ var SlideMaker = function() {
 		for(var i = 0; i < fields.length; i++)
 		{
 			var value = fixed[fields[i]] ? fixed[fields[i]] : '';
-			if(value)
+			if(!value) continue;
+
+			switch(fields[i])
 			{
-				template.append('<span class="'+fields[i]+'">' + value + '</span>');
+				case 'attach':
+					template.append('<div class="' + fields[i]+'" style="background-image: url(\'' + value + '\');"></div>');
+					break;
+				default:
+					template.append('<span class="'+fields[i]+'">' + value + '</span>');
+					break;
 			}
 		}
 		return template;

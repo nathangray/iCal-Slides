@@ -78,6 +78,8 @@ The idea is you can then use these slides in presentation to announce upcoming e
 	<p>Or, try some pre-built examples:<ul>
 	<li><a href="index.html?template=brown_vintage&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/daily_recur.ics&from=2012-10-01&to=2012-12-01">Daily</a></li>
 	<li><a href="index.html?template=blue_flowers&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/recur_instances_finite.ics&from=2012-10-01&to=2012-12-01">Recurrence with end date</a></li>
+	<li><a href="index.html?template=paisly_on_black&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/multi_line.ics">Multi-line descriptions</a></li>
+	<li><a href="index.html?template=paisly_on_black&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/image_attachment.ics">Image attachment</a></li>
 	</ul></p>
   <script>
 	  // Renderer for theme menu
@@ -149,17 +151,18 @@ The idea is you can then use these slides in presentation to announce upcoming e
 				jQuery('#output').empty();
 				SlideMaker.setTemplate(this.value);
 				var file_node = jQuery('#file')[0];
+				var file = $_GET.iCal;
 				if(file_node && file_node.files && file_node.files.length)
 				{
 					for(var i = 0; i < file_node.files.length; i++)
 					{
-						var file = file_node.files[i];
-						SlideMaker.makeSlides(file,
-							moment(jQuery('#start_date').val()),
-							moment(jQuery('#end_date').val())
-						);
+						file = file_node.files[i];
 					}
 				}
+				SlideMaker.makeSlides(file,
+					moment(jQuery('#start_date').val()),
+					moment(jQuery('#end_date').val())
+				);
 			}
 		})
 			.iconselectmenu()

@@ -157,7 +157,7 @@ var icalParser={
 			url:this.getValue('URL',veventString), //This property defines a Uniform Resource Locator (URL) associated with the iCalendar object.
 			recurid:this.getValue('RECURRENCE-ID',veventString), //This property is used in conjunction with the "UID" and "SEQUENCE" property to identify a specific instance of a recurring "VEVENT", "VTODO" or "VJOURNAL" calendar component. The property value is the effective value of the "DTSTART" property of the recurrence instance.
 			duration:this.getValue('DURATION',veventString), //The property specifies a positive duration of time.
-			attach:this.getValue('ATTACH',veventString,true), //The property provides the capability to associate a document object with a calendar component.
+			attach:this.getValue('ATTACH',veventString), //The property provides the capability to associate a document object with a calendar component.
 			attendee:this.getValue('ATTENDEE',veventString,true), //The property defines an "Attendee" within a calendar component.
 			categories:this.getValue('CATEGORIES',veventString,true), //This property defines the categories for a calendar component.
 			comment:this.getValue('COMMENT',veventString,true), //This property specifies non-processing information intended to provide a comment to the calendar user.			
