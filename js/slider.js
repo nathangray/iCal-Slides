@@ -122,7 +122,7 @@ var SlideMaker = function() {
 						   '</foreignObject>' +
 					//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
 						'</svg>';
-			var svg = jQuery(data).appendTo('body')[0];
+			//var svg = jQuery(data).appendTo('body')[0];
 			var img = jQuery("<img src='data:image/svg+xml;base64,"+_svgEncode(data)+"'/>").appendTo('body')[0];
 
 			var canvas = jQuery('<canvas/>')[0];
@@ -509,7 +509,7 @@ var SlideMaker = function() {
 		
 		var _makeSlides = function _makeSlides(events)
 		{
-			var target = jQuery('#output');;
+			var target = jQuery('#output');
 			_message(start.format(dateFormat) + ' - ' + end.format(dateFormat) + ': ' + events.length + ' events found');
 			if(!events.length)
 			{
@@ -520,7 +520,17 @@ var SlideMaker = function() {
 				slideSingleEvent(events[i]).appendTo(target).wrap('<div class="thumbnail"></div>');
 			}
 
-			target.on('click', '.slide', function() { _makeImage(this);});
+			jQuery('.thumbnail',target).append('<div class="buttons">'+
+				'<div class="ui-button"><span class="ui-icon ui-icon-circle-arrow-s"></span></div>'+
+				'<div class="ui-button"><span class="ui-icon ui-icon-closethick"></span></div>'+
+				'</div>');
+
+			var _getSlide = function _getSlide(node)
+			{
+				return node.parentNode.parentNode.parentNode.firstChild;
+			}
+			target.on('click', 'div > .ui-icon-circle-arrow-s', function() { _makeImage(_getSlide(this)); return false;});
+			target.on('click', 'div > .ui-icon-closethick', function() { jQuery(_getSlide(this).parentNode).remove();});
 		}
 
 		// Load events
