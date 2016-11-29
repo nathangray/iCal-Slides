@@ -33,7 +33,53 @@
 		border-radius: 10px;
 		padding: 0.5em;
 	}
-	span.start, span.end, span.duration {
+	/* P is used for linebreaks, since <br /> is invalid in SVG */
+	p {
+		margin: 0px;
+		min-height:1ex;
+	}
+	
+	.list_event {
+		overflow: hidden;
+		min-height: 1.6em;
+		
+		span {
+			position: absolute;
+		}
+		span.summary {
+			top: 0px;
+			left: 10ex;
+			font-size: 100%;
+		}
+		span.description {
+			top: 1.5ex;
+			position: relative;
+
+			p {
+				display: none;
+			}
+			p:first-child {
+				display: inline-block;
+			}
+		}
+		span.start_time {
+			display: inline-block;
+			top: 0px;
+			left: 0px;
+		}
+		span.start, span.end, span.end_time, span.time, span.duration {
+			display: none;
+		}
+		span.recurrence {
+			display: none;
+		}
+		.attach {
+			display: none;
+		}
+	}
+}
+.slide.single_event {
+	span.start, span.end, span.start_time, span.end_time, span.duration {
 		display: none;
 	}
 	span.recurrence {
@@ -41,11 +87,6 @@
 		position: absolute;
 		bottom: 5%;
 		right: 5%;
-	}
-
-	/* P is used for linebreaks, since <br /> is invalid in SVG */
-	p {
-		margin: 0px;
 	}
 
 	.attach {
@@ -60,6 +101,19 @@
 		width: 25%;
 	}
 }
+.slide.day_list {
+	display: flex;
+	flex-direction: column;
+	
+	.list_event {
+		position: relative;
+		flex: 1 1 auto;
+		
+		span.summary {
+		}
+	}
+}
+
 @import "/templates/blue_flowers.less";
 @import "/templates/brown_vintage.less";
 @import "/templates/paisly_on_black.less";

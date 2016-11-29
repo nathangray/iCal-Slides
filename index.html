@@ -133,7 +133,7 @@ The idea is you can then use these slides in presentation to announce upcoming e
 			.end()
 			.appendTo('#output');
 		}, jQuery('#speed').val()*1000);
-		jQuery('body').on('keypress', function(){
+		jQuery('body').on('keydown', function(){
 			clearInterval(slideshow);
 			output.removeClass("slideshow");
 			

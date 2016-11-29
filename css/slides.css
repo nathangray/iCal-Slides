@@ -27,29 +27,80 @@
   border-radius: 10px;
   padding: 0.5em;
 }
-.slide span.start,
-.slide span.end,
-.slide span.duration {
+.slide p {
+  margin: 0px;
+  min-height: 1ex;
+}
+.slide .list_event {
+  overflow: hidden;
+  min-height: 1.6em;
+}
+.slide .list_event span {
+  position: absolute;
+}
+.slide .list_event span.summary {
+  top: 0px;
+  left: 10ex;
+  font-size: 100%;
+}
+.slide .list_event span.description {
+  top: 1.5ex;
+  position: relative;
+}
+.slide .list_event span.description p {
   display: none;
 }
-.slide span.recurrence {
+.slide .list_event span.description p:first-child {
+  display: inline-block;
+}
+.slide .list_event span.start_time {
+  display: inline-block;
+  top: 0px;
+  left: 0px;
+}
+.slide .list_event span.start,
+.slide .list_event span.end,
+.slide .list_event span.end_time,
+.slide .list_event span.time,
+.slide .list_event span.duration {
+  display: none;
+}
+.slide .list_event span.recurrence {
+  display: none;
+}
+.slide .list_event .attach {
+  display: none;
+}
+.slide.single_event span.start,
+.slide.single_event span.end,
+.slide.single_event span.start_time,
+.slide.single_event span.end_time,
+.slide.single_event span.duration {
+  display: none;
+}
+.slide.single_event span.recurrence {
   text-align: right;
   position: absolute;
   bottom: 5%;
   right: 5%;
 }
-.slide p {
-  margin: 0px;
-}
-.slide .attach {
+.slide.single_event .attach {
   width: 100%;
   height: 100%;
   background-repeat: no-repeat;
   background-size: contain;
   z-index: 1;
 }
-.slide .attach:not(:first-of-type) {
+.slide.single_event .attach:not(:first-of-type) {
   width: 25%;
+}
+.slide.day_list {
+  display: flex;
+  flex-direction: column;
+}
+.slide.day_list .list_event {
+  position: relative;
+  flex: 1 1 auto;
 }
 .slide.blue_flowers {
   /*background-image: url('blue_flowers.jpg');*/

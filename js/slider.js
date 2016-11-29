@@ -3,9 +3,14 @@ var SlideMaker = function() {
 	var RECUR_LIMIT = 50;
 	
 	var messageNode;
-	var dateFormat = 'dddd LL';
+	var dateFormat = 'dddd, MMMM Do';
+	var datetimeFormat = 'dddd, MMMM Do h:mma';
+	var timeFormat = 'h:mma';
 	var template_set = 'plain';
-	var fields = ['summary','description', 'start', 'end', 'time', 'duration', 'recurrence', 'attach'];
+	var fields = ['summary','description', 
+		'start', 'end', 'start_time', 'end_time', 'time', 'duration',
+		'recurrence', 'attach'
+	];
 
 	var baseCSS = '';
 	var templateCSS = '';
@@ -366,23 +371,26 @@ var SlideMaker = function() {
 	 * @param {Object} event
 	 * @returns {Object} modified event
 	 */
-	massageEvent = function massageEvent(event, template)
+	massageEvent = function massageEvent(event)
 	{
-
+		var event = jQuery.extend(true, {}, event);
+		
 		// Extra fields
 		var duration = moment.duration(event.end.diff(event.start, 'minutes'),'minutes');
 		event.duration = (duration.asHours() > 1 ? duration.asHours() + ' hours' : duration.humanize());
-		event.time = event.start.format(dateFormat + ' h:mm') + ' (' + event.duration + ')'
+		event.time = event.start.calendar(null,{sameElse: datetimeFormat}) + ' (' + event.duration + ')'
 		if(event.start.format('YYYY-MM-DD') !== event.end.format('YYYY-MM-DD'))
 		{
-			event.time = event.start.format(dateFormat) + ' - ' + event.end.format(dateFormat);
+			event.time = event.start.calendar(null,{sameElse: datetimeFormat}) + ' - ' +
+				event.end.calendar(null,{sameElse: datetimeFormat})
 		}
+		event.start_time = event.start.format(timeFormat);
+		event.end_time = event.end.format(timeFormat);
 
 		// Massage & format ical fields
 		for(var i = 0; i < fields.length; i++)
 		{
 			var value = event[fields[i]] ? event[fields[i]] : '';
-			var svgField = jQuery('#'+fields[i],template);
 			if(typeof value !== 'string' && typeof value.value === 'string')
 			{
 				value = value.value;
@@ -453,7 +461,7 @@ var SlideMaker = function() {
 	 * Generate the DOM nodes for a slide for a single event
 	 *
 	 * @param {Object} event
-	 * @returns {undefined}
+	 * @returns {DOMNode}
 	 */
 	slideSingleEvent = function slideSingleEvent(event)
 	{
@@ -482,6 +490,61 @@ var SlideMaker = function() {
 	};
 
 	/**
+	 * Generate the DOM nodes for slide(s) showing multiple events on a single day
+	 *
+	 * It takes at least 3 events on the same day for this slide to be generated
+	 *
+	 * @param {Object[]} events
+	 * @param {moment} date
+	 * @returns {DOMNode[]}
+	 */
+	slideDayList = function slideDayList(events, date)
+	{
+		var end_date = date.clone().endOf('day');
+		var day_events = [];
+
+		for(var i = 0; i < events.length; i++)
+		{
+			if(events[i].start.isBetween(date, end_date))
+			{
+				day_events.push(events[i]);
+			}
+		}
+
+		if(day_events.length < 3) return false;
+
+		var template = jQuery('<div class="slide day_list ' + template_set + '"><span class="summary">'+
+				date.format(dateFormat) +
+				'</span></div>'
+		);
+
+		for(var i = 0; i < day_events.length; i++)
+		{
+			slideSingleEvent(day_events[i])
+				.removeClass('slide single_event ' + template_set)
+				.addClass('list_event')
+				.appendTo(template);
+		}
+
+		return template;
+	};
+
+	/**
+	 * Generate the DOM nodes for slide(s) showing multiple events on a single week
+	 *
+	 * It takes at least 3 events on the same week for this slide to be generated
+	 *
+	 * @param {Object[]} events - List
+	 * @param {moment} date - Start of the week
+	 * @returns {DOMNode[]}
+	 */
+	slideWeekList = function slideWeekList(events, date)
+	{
+
+		return false;
+	};
+
+	/**
 	 * Make a bunch of slides
 	 *
 	 * The iCal is parsed, events extracted, and slided generated.
@@ -498,11 +561,11 @@ var SlideMaker = function() {
 		messageNode.empty();
 
 		// Set dates if not provided
-		if(typeof start === 'undefined')
+		if(typeof start === 'undefined' || start.isValid && !start.isValid())
 		{
 			start = moment().startOf('week');
 		}
-		if(typeof end === 'undefined')
+		if(typeof end === 'undefined' || end.isValid && !end.isValid())
 		{
 			end = start.clone().endOf('week');
 		}
@@ -517,8 +580,17 @@ var SlideMaker = function() {
 			}
 			for(var i = 0; i < events.length; i++)
 			{
-				slideSingleEvent(events[i]).appendTo(target).wrap('<div class="thumbnail"></div>');
+				slideSingleEvent(events[i]).appendTo(target);
 			}
+			for(var d = start.clone().startOf('day'); d.isSameOrBefore(end); d.add(1,'day'))
+			{
+				target.append(slideDayList(events, d));
+			}
+			for(var d = start.clone(); d.isSameOrBefore(end); d.add(1,'week'))
+			{
+				target.append(slideWeekList(events, d));
+			}
+			target.children('.slide').wrap('<div class="thumbnail"></div>');
 
 			jQuery('.thumbnail',target).append('<div class="buttons">'+
 				'<div class="ui-button"><span class="ui-icon ui-icon-circle-arrow-s"></span></div>'+
