@@ -41,7 +41,7 @@
 	
 	.list_event {
 		overflow: hidden;
-		min-height: 1.6em;
+		min-height: 1.5em;
 		
 		span {
 			position: absolute;
@@ -101,16 +101,29 @@
 		width: 25%;
 	}
 }
-.slide.day_list {
+.slide.day_list, .slide.week_list {
 	display: flex;
 	flex-direction: column;
-	
+
+	.summary {
+		margin-bottom: 1ex;
+	}
 	.list_event {
 		position: relative;
-		flex: 1 1 auto;
+		flex: 0 1 auto;
 		
 		span.summary {
 		}
+	}
+}
+.slide.week_list {
+	.date {
+		font-size: 125%;
+		margin-top: 1ex;
+		margin-bottom: 0px;
+	}
+	.description {
+		display: none;
 	}
 }
 

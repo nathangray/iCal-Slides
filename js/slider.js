@@ -465,7 +465,7 @@ var SlideMaker = function() {
 	 */
 	slideSingleEvent = function slideSingleEvent(event)
 	{
-		var template = jQuery('<div class="slide single_event ' + template_set + '"></div>');
+		var template = jQuery('<div class="slide single_event ' + template_set + '" data-date="'+event.start.format('YYYY-MM-DD HH:mm')+'"></div>');
 		var fixed = massageEvent(event, template);
 		for(var i = 0; i < fields.length; i++)
 		{
@@ -513,7 +513,7 @@ var SlideMaker = function() {
 
 		if(day_events.length < 3) return false;
 
-		var template = jQuery('<div class="slide day_list ' + template_set + '"><span class="summary">'+
+		var template = jQuery('<div class="slide day_list ' + template_set + '" data-date="'+date.format('YYYY-MM-DD')+'"><span class="summary">'+
 				date.format(dateFormat) +
 				'</span></div>'
 		);
@@ -532,7 +532,7 @@ var SlideMaker = function() {
 	/**
 	 * Generate the DOM nodes for slide(s) showing multiple events on a single week
 	 *
-	 * It takes at least 3 events on the same week for this slide to be generated
+	 * It takes between 3 and 20 events on the same week for this slide to be generated
 	 *
 	 * @param {Object[]} events - List
 	 * @param {moment} date - Start of the week
@@ -540,8 +540,39 @@ var SlideMaker = function() {
 	 */
 	slideWeekList = function slideWeekList(events, date)
 	{
+		var end_date = date.clone().endOf('week');
+		var last_date = moment();
+		var week_events = [];
 
-		return false;
+		for(var i = 0; i < events.length; i++)
+		{
+			if(events[i].start.isBetween(date, end_date))
+			{
+				week_events.push(events[i]);
+			}
+		}
+
+		if(week_events.length < 3 || week_events.length > 20) return false;
+
+		var template = jQuery('<div class="slide week_list ' + template_set + '" data-date="'+date.format('YYYY-MM-DD')+'"><span class="summary">'+
+				date.format('MMM Do') + ' - ' + end_date.format('MMM Do') +
+				'</span></div>'
+		);
+
+		for(var i = 0; i < week_events.length; i++)
+		{
+			if(week_events[i].start.format('YYYY-MM-DD') !== last_date.format('YYYY-MM-DD'))
+			{
+				template.append('<span class="date">' + week_events[i].start.format('dddd') + '</span>');
+				last_date = week_events[i].start.clone().startOf('day');
+			}
+			slideSingleEvent(week_events[i])
+				.removeClass('slide single_event ' + template_set)
+				.addClass('list_event')
+				.appendTo(template);
+		}
+
+		return template;
 	};
 
 	/**
@@ -578,19 +609,26 @@ var SlideMaker = function() {
 			{
 				return;
 			}
-			for(var i = 0; i < events.length; i++)
+			for(var d = start.clone().startOf('week'); d.isSameOrBefore(end); d.add(1,'week'))
 			{
-				slideSingleEvent(events[i]).appendTo(target);
+				target.append(slideWeekList(events, d));
 			}
+			
 			for(var d = start.clone().startOf('day'); d.isSameOrBefore(end); d.add(1,'day'))
 			{
 				target.append(slideDayList(events, d));
 			}
-			for(var d = start.clone(); d.isSameOrBefore(end); d.add(1,'week'))
+			for(var i = 0; i < events.length; i++)
 			{
-				target.append(slideWeekList(events, d));
+				slideSingleEvent(events[i]).appendTo(target);
 			}
-			target.children('.slide').wrap('<div class="thumbnail"></div>');
+			target.children('.slide').sort(function(a, b) {
+				if(a.dataset.date < b.dataset.date) return -1;
+				if(a.dataset.date > b.dataset.date) return 1;
+				return 0;
+			})
+			.appendTo(target)
+			.wrap('<div class="thumbnail"></div>');
 
 			jQuery('.thumbnail',target).append('<div class="buttons">'+
 				'<div class="ui-button"><span class="ui-icon ui-icon-circle-arrow-s"></span></div>'+
@@ -614,7 +652,7 @@ var SlideMaker = function() {
 					_makeSlides(events);
 				}, function() {_message('Unable to load ' + ical_url, 'error')});
 		}
-		else if (typeof ical_url.name === 'string')
+		else if (ical_url && typeof ical_url.name === 'string')
 		{
 			readICalFile(ical_url, start, end)
 				.then(function(events) {

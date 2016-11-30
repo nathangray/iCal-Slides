@@ -33,7 +33,7 @@
 }
 .slide .list_event {
   overflow: hidden;
-  min-height: 1.6em;
+  min-height: 1.5em;
 }
 .slide .list_event span {
   position: absolute;
@@ -94,13 +94,27 @@
 .slide.single_event .attach:not(:first-of-type) {
   width: 25%;
 }
-.slide.day_list {
+.slide.day_list,
+.slide.week_list {
   display: flex;
   flex-direction: column;
 }
-.slide.day_list .list_event {
+.slide.day_list .summary,
+.slide.week_list .summary {
+  margin-bottom: 1ex;
+}
+.slide.day_list .list_event,
+.slide.week_list .list_event {
   position: relative;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+}
+.slide.week_list .date {
+  font-size: 125%;
+  margin-top: 1ex;
+  margin-bottom: 0px;
+}
+.slide.week_list .description {
+  display: none;
 }
 .slide.blue_flowers {
   /*background-image: url('blue_flowers.jpg');*/
