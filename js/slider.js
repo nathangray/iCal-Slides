@@ -17,6 +17,7 @@ var SlideMaker = function() {
 		// String might work, as long as it can be parsed
 		startDate: null,
 		endDate: null,
+		extraSlides: [],
 
 		// * These ones you can leave alone
 		// Date formats for slides
@@ -34,10 +35,10 @@ var SlideMaker = function() {
 		templateSet: 'plain',
 
 		// Message div
-		messageNode: document.getElementById('#messages'),
+		messageNode: '#messages',
 		
 		// Output div
-		target: document.getElementById('#output')
+		targetNode: '#output'
 	};
 
 	var options = {};
@@ -197,7 +198,7 @@ var SlideMaker = function() {
 	 * @param {String} data objectURL or data url to download
 	 * @param {String} filename
 	 */
-	_download: function _download(data, filename) {
+	_download = function _download(data, filename) {
 		var pom = document.createElement('a');
 
 		pom.setAttribute('href',data);
@@ -213,7 +214,7 @@ var SlideMaker = function() {
 		}
 	};
 
-	_message: function _message(message, type) {
+	_message = function _message(message, type) {
 		var stateClass = 'ui-state-highlight';
 		var icon = 'ui-icon-info';
 		if(type == 'error')
@@ -231,6 +232,39 @@ var SlideMaker = function() {
 					jQuery(this).parent().remove();
 				});
 		
+	};
+
+	/**
+	 * Make sure required options are set, sanitize as needed
+	 */
+	_checkOptions = function _checkOptions()
+	{
+		// Set dates if not provided
+		if(!options.startDate || options.startDate.isValid && !options.startDate.isValid())
+		{
+			options.startDate = moment().startOf('week');
+		}
+		if(!options.endDate || options.endDate.isValid && !options.endDate.isValid())
+		{
+			options.endDate = options.startDate.clone().endOf('week');
+		}
+		// Set nodes if not provided
+		if(!options.messageNode)
+		{
+			options.messageNode = jQuery('<div></div>').appendTo('body');
+		}
+		else if (options.messageNode && typeof options.messageNode === 'string')
+		{
+			options.messageNode = jQuery(options.messageNode);
+		}
+		if(!options.targetNode)
+		{
+			options.targetNode = jQuery('<div></div>').appendTo('body');
+		}
+		else if (options.targetNode && typeof options.targetNode === 'string')
+		{
+			options.targetNode = jQuery(options.targetNode);
+		}
 	};
 
 	/**
@@ -618,26 +652,22 @@ var SlideMaker = function() {
 	makeSlides = function makeSlides(_options)
 	{
 		// Clear messages from last time
-		if(options.messageNode)
+		if(options.messageNode && options.messageNode.empty)
 		{
-			messageNode.empty();
+			options.messageNode.empty();
 		}
+		
+		options = jQuery.extend({}, defaults, _options);
 
-		options = jQuery.extend({}, defaults, options, _options);
+		// Set theme
+		setTemplate(options.templateSet);
 
-		// Set dates if not provided
-		if(!options.startDate || options.startDate.isValid && !options.startDate.isValid())
-		{
-			options.startDate = moment().startOf('week');
-		}
-		if(!options.endDate || options.endDate.isValid && !options.endDate.isValid())
-		{
-			options.endDate = options.startDate.clone().endOf('week');
-		}
+		// Make sure stuff is set
+		_checkOptions();
 		
 		var _makeSlides = function _makeSlides(events)
 		{
-			var target = jQuery('#output');
+			var target = jQuery(options.targetNode);
 			_message(options.startDate.format(options.dateFormat) + ' - ' + options.endDate.format(options.dateFormat) + ': ' + events.length + ' events found');
 			if(!events.length)
 			{
