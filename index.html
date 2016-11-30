@@ -157,10 +157,11 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		for(var i = 0; i < event.target.files.length; i++)
 		{
 			var file = event.target.files[i];
-			SlideMaker.makeSlides(file,
-				moment(jQuery('#start_date').val()),
-				moment(jQuery('#end_date').val())
-			);
+			SlideMaker.makeSlides({
+				iCal: file,
+				startDate: moment(jQuery('#start_date').val()),
+				endDate: moment(jQuery('#end_date').val())
+			});
 		}
 	}
 
@@ -211,10 +212,11 @@ The idea is you can then use these slides in presentation to announce upcoming e
 						file = file_node.files[i];
 					}
 				}
-				SlideMaker.makeSlides(file,
-					moment(jQuery('#start_date').val()),
-					moment(jQuery('#end_date').val())
-				);
+				SlideMaker.makeSlides({
+					iCal: file,
+					startDate: moment(jQuery('#start_date').val()),
+					endDate: moment(jQuery('#end_date').val())
+				});
 			}
 		})
 			.iconselectmenu()
@@ -226,16 +228,14 @@ The idea is you can then use these slides in presentation to announce upcoming e
 			jQuery('#speed').val($_GET.speed);
 		}
 
-		// Tell it where to put messages
-		SlideMaker.setMessageNode(document.getElementById('messages'));
-
 		// If URL is passed in, run it
 		if($_GET.iCal)
 		{
-			SlideMaker.makeSlides($_GET.iCal,
-				moment(jQuery('#start_date').val()),
-				moment(jQuery('#end_date').val())
-			);
+			SlideMaker.makeSlides({
+				iCal: $_GET.iCal,
+				startDate: moment(jQuery('#start_date').val()),
+				endDate: moment(jQuery('#end_date').val())
+			});
 		}
 	});
 </script>
