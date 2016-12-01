@@ -437,16 +437,29 @@ var SlideMaker = function() {
 		var event = jQuery.extend(true, {}, event);
 		
 		// Extra fields
-		var duration = moment.duration(event.end.diff(event.start, 'minutes'),'minutes');
-		event.duration = (duration.asHours() > 1 ? duration.asHours() + ' hours' : duration.humanize());
-		event.time = event.start.calendar(null,{sameElse: options.datetimeFormat}) + ' (' + event.duration + ')'
-		if(event.start.format('YYYY-MM-DD') !== event.end.format('YYYY-MM-DD'))
+		if(event.start)
 		{
-			event.time = event.start.calendar(null,{sameElse: options.datetimeFormat}) + ' - ' +
-				event.end.calendar(null,{sameElse: options.datetimeFormat})
+			event.start_time = event.start.format(options.timeFormat);
 		}
-		event.start_time = event.start.format(options.timeFormat);
-		event.end_time = event.end.format(options.timeFormat);
+		if(event.end)
+		{
+			var duration = moment.duration(event.end.diff(event.start, 'minutes'),'minutes');
+			event.duration = (duration.asHours() > 1 ? duration.asHours() + ' hours' : duration.humanize());
+			event.end_time = event.end.format(options.timeFormat);
+		}
+		if(event.start && event.duration)
+		{
+			event.time = event.start.calendar(null,{sameElse: options.datetimeFormat}) + ' (' + event.duration + ')'
+		}
+		if(event.start && event.end)
+		{
+			if(event.start.format('YYYY-MM-DD') !== event.end.format('YYYY-MM-DD'))
+			{
+				event.time = event.start.calendar(null,{sameElse: options.datetimeFormat}) + ' - ' +
+					event.end.calendar(null,{sameElse: options.datetimeFormat})
+			}
+		}
+
 
 		// Massage & format ical fields
 		for(var i = 0; i < options.fields.length; i++)
@@ -526,7 +539,8 @@ var SlideMaker = function() {
 	 */
 	slideSingleEvent = function slideSingleEvent(event)
 	{
-		var template = jQuery('<div class="slide single_event ' + options.templateSet + '" data-date="'+event.start.format('YYYY-MM-DD HH:mm')+'"></div>');
+		var template = jQuery('<div class="slide single_event ' + options.templateSet + ' ' + event.klass +
+				'" data-date="'+(event.start ? event.start.format('YYYY-MM-DD HH:mm') : '') + '"></div>');
 		var fixed = massageEvent(event, template);
 		for(var i = 0; i < options.fields.length; i++)
 		{
@@ -566,7 +580,7 @@ var SlideMaker = function() {
 
 		for(var i = 0; i < events.length; i++)
 		{
-			if(events[i].start.isBetween(date, end_date))
+			if(events[i].start && events[i].start.isBetween(date, end_date))
 			{
 				day_events.push(events[i]);
 			}
@@ -607,7 +621,7 @@ var SlideMaker = function() {
 
 		for(var i = 0; i < events.length; i++)
 		{
-			if(events[i].start.isBetween(date, end_date))
+			if(events[i].start && events[i].start.isBetween(date, end_date))
 			{
 				week_events.push(events[i]);
 			}
@@ -669,9 +683,13 @@ var SlideMaker = function() {
 		{
 			var target = jQuery(options.targetNode);
 			_message(options.startDate.format(options.dateFormat) + ' - ' + options.endDate.format(options.dateFormat) + ': ' + events.length + ' events found');
-			if(!events.length)
+			if(!events.length && !options.extraSlides.length)
 			{
 				return;
+			}
+			for(var i = 0; i < options.extraSlides.length; i++)
+			{
+				target.append(slideSingleEvent(options.extraSlides[i]));
 			}
 			for(var d = options.startDate.clone().startOf('week'); d.isSameOrBefore(options.endDate); d.add(1,'week'))
 			{
@@ -723,6 +741,11 @@ var SlideMaker = function() {
 					// Make slides
 					_makeSlides(events);
 				}, function() {_message('Unable to load file', 'error')});
+		}
+		else if (options.iCal && typeof options.iCal === 'object' && typeof options.iCal.length !== 'undefined')
+		{
+			// Object - just pass it along
+			_makeSlides(options.iCal);
 		}
 	};
 

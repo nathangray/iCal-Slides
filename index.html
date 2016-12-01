@@ -74,7 +74,22 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		<input id="file" type="file" name="file" onchange="fileChanged(event)" class="ui-widget"/>
 	</fieldset>
 	<div id="output"></div>
-	<div class="ui-button" onclick="slideShow()">Slideshow<output id="speed_label" for="speed">10</output></div><input id="speed" type="range" min="5" max="30" value="10" step="5"/>
+	<div id="extras">
+		<h3>Options</h3>
+		<div id="options">
+			These aren't actually part of the library, just extras using it<br />
+			<label for="silencePhone">Silence phone</label>
+			<span class="checkbox">
+				<input type="checkbox" id="silencePhone" /><label for="silencePhone"></label>
+			</span><br />
+			<div class="ui-button" onclick="slideShow()">Slideshow<output id="speed_label" for="speed">10</output></div><input id="speed" type="range" min="5" max="30" value="10" step="5"/>
+		</div>
+		<h3>Extra Slides</h3>
+		<div id="extraSlides">
+			<input id="summary"/><br />
+			<textarea id="description"></textarea>
+		</div>
+	</div>
 	<p>Try some pre-built examples:<ul>
 	<li><a href="index.html?template=brown_vintage&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/daily_recur.ics&from=2012-10-01&to=2012-12-01">Daily</a></li>
 	<li><a href="index.html?template=blue_flowers&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/recur_instances_finite.ics&from=2012-10-01&to=2012-12-01">Recurrence with end date</a></li>
@@ -82,11 +97,19 @@ The idea is you can then use these slides in presentation to announce upcoming e
 	<li><a href="index.html?template=paisly_on_black&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/image_attachment.ics">Image attachment</a></li>
 	</ul></p>
   <script>
-	  // Slide options
-	  var options = {
-		  targetNode: '#output',
-		  messageNode: '#messages'
-	  };
+	// Slide options
+	var options = {
+		targetNode: '#output',
+		messageNode: '#messages',
+		extraSlides: []
+	};
+
+	// Make the slides
+	function makeSlides()
+	{
+		jQuery(options.targetNode).empty();
+		SlideMaker.makeSlides(options);
+	}
 
 	  // Renderer for theme menu
 	  $.widget( "custom.iconselectmenu", $.ui.selectmenu, {
@@ -163,7 +186,7 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		for(var i = 0; i < event.target.files.length; i++)
 		{
 			options.iCal = event.target.files[i];
-			SlideMaker.makeSlides(options);
+			makeSlides();
 		}
 	}
 
@@ -187,14 +210,34 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		jQuery('input[type="date"]').on('change', function() {
 			jQuery(options.targetNode).empty();
 			options[this.id] = jQuery(this).val();
-			SlideMaker.makeSlides(options);
+			makeSlides();
 		})
+
+		// Bind silence phone
+		jQuery('#silencePhone').on('change', function() {
+			if(jQuery(this).is(':checked'))
+			{
+				options.extraSlides.push({
+					klass: 'silencePhone',
+					summary: 'Please silence your phone',
+					description: '<img src="images/bell.svg"/>'
+				});
+				makeSlides();
+			}
+			else
+			{
+				options.extraSlides.splice(
+					options.extraSlides.findIndex(function(e) {return e.klass === 'silencePhone';}),
+					1
+				);
+				jQuery('.silencePhone', options.targetNode).parent().remove();
+			}
+		});
 
 		// Bind slideshow slider value
 		jQuery('#speed').on('change', function() {
-			jQuery(options.targetNode).empty();
 			jQuery('#speed_label').val(jQuery('#speed').val());
-		})
+		});
 
 		// initialize dates & theme
 		options.startDate = $_GET.from ? moment($_GET.from) : moment().startOf('week').add(1,'w');
@@ -218,6 +261,10 @@ The idea is you can then use these slides in presentation to announce upcoming e
 			.iconselectmenu( "menuWidget" )
 			.addClass( "ui-menu-icons thumbnail" );
 
+		jQuery('#extras').accordion({
+			collapsible: true
+		});
+		
 		if($_GET.speed)
 		{
 			jQuery('#speed').val($_GET.speed);
@@ -227,7 +274,7 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		if($_GET.iCal)
 		{
 			options.iCal = $_GET.iCal;
-			SlideMaker.makeSlides(options);
+			makeSlides();
 		}
 	});
 </script>
