@@ -3,12 +3,45 @@ var SlideMaker = function() {
 	var RECUR_LIMIT = 50;
 	
 	var messageNode;
-	var dateFormat = 'dddd LL';
-	var template_set = 'plain';
-	var fields = ['summary','description', 'start', 'end', 'time', 'duration', 'recurrence', 'attach'];
 
 	var baseCSS = '';
 	var templateCSS = '';
+
+	var defaults = {
+		// * These ones need to be set
+		// iCal URL
+		iCal: '',
+
+		// * These ones could be set
+		// Dates - moment or Date objects.
+		// String might work, as long as it can be parsed
+		startDate: null,
+		endDate: null,
+		extraSlides: [],
+
+		// * These ones you can leave alone
+		// Date formats for slides
+		dateFormat: 'dddd, MMMM Do',
+		datetimeFormat: 'dddd, MMMM Do h:mma',
+		timeFormat: 'h:mma',
+
+		// iCal fields to add to slides
+		fields: ['summary','description',
+			'start', 'end', 'start_time', 'end_time', 'time', 'duration',
+			'recurrence', 'attach'
+		],
+
+		// Template
+		templateSet: 'plain',
+
+		// Message div
+		messageNode: '#messages',
+		
+		// Output div
+		targetNode: '#output'
+	};
+
+	var options = {};
 
 	var fetchICal;
 	var readICalFile;
@@ -122,7 +155,7 @@ var SlideMaker = function() {
 						   '</foreignObject>' +
 					//' <text y="90">" \' # % &amp; ¿ 🔣</text>'+
 						'</svg>';
-			var svg = jQuery(data).appendTo('body')[0];
+			//var svg = jQuery(data).appendTo('body')[0];
 			var img = jQuery("<img src='data:image/svg+xml;base64,"+_svgEncode(data)+"'/>").appendTo('body')[0];
 
 			var canvas = jQuery('<canvas/>')[0];
@@ -165,7 +198,7 @@ var SlideMaker = function() {
 	 * @param {String} data objectURL or data url to download
 	 * @param {String} filename
 	 */
-	_download: function _download(data, filename) {
+	_download = function _download(data, filename) {
 		var pom = document.createElement('a');
 
 		pom.setAttribute('href',data);
@@ -181,7 +214,7 @@ var SlideMaker = function() {
 		}
 	};
 
-	_message: function _message(message, type) {
+	_message = function _message(message, type) {
 		var stateClass = 'ui-state-highlight';
 		var icon = 'ui-icon-info';
 		if(type == 'error')
@@ -199,6 +232,39 @@ var SlideMaker = function() {
 					jQuery(this).parent().remove();
 				});
 		
+	};
+
+	/**
+	 * Make sure required options are set, sanitize as needed
+	 */
+	_checkOptions = function _checkOptions()
+	{
+		// Set dates if not provided
+		if(!options.startDate || options.startDate.isValid && !options.startDate.isValid())
+		{
+			options.startDate = moment().startOf('week');
+		}
+		if(!options.endDate || options.endDate.isValid && !options.endDate.isValid())
+		{
+			options.endDate = options.startDate.clone().endOf('week');
+		}
+		// Set nodes if not provided
+		if(!options.messageNode)
+		{
+			options.messageNode = jQuery('<div></div>').appendTo('body');
+		}
+		else if (options.messageNode && typeof options.messageNode === 'string')
+		{
+			options.messageNode = jQuery(options.messageNode);
+		}
+		if(!options.targetNode)
+		{
+			options.targetNode = jQuery('<div></div>').appendTo('body');
+		}
+		else if (options.targetNode && typeof options.targetNode === 'string')
+		{
+			options.targetNode = jQuery(options.targetNode);
+		}
 	};
 
 	/**
@@ -366,30 +432,46 @@ var SlideMaker = function() {
 	 * @param {Object} event
 	 * @returns {Object} modified event
 	 */
-	massageEvent = function massageEvent(event, template)
+	massageEvent = function massageEvent(event)
 	{
-
+		var event = jQuery.extend(true, {}, event);
+		
 		// Extra fields
-		var duration = moment.duration(event.end.diff(event.start, 'minutes'),'minutes');
-		event.duration = (duration.asHours() > 1 ? duration.asHours() + ' hours' : duration.humanize());
-		event.time = event.start.format(dateFormat + ' h:mm') + ' (' + event.duration + ')'
-		if(event.start.format('YYYY-MM-DD') !== event.end.format('YYYY-MM-DD'))
+		if(event.start)
 		{
-			event.time = event.start.format(dateFormat) + ' - ' + event.end.format(dateFormat);
+			event.start_time = event.start.format(options.timeFormat);
+		}
+		if(event.end)
+		{
+			var duration = moment.duration(event.end.diff(event.start, 'minutes'),'minutes');
+			event.duration = (duration.asHours() > 1 ? duration.asHours() + ' hours' : duration.humanize());
+			event.end_time = event.end.format(options.timeFormat);
+		}
+		if(event.start && event.duration)
+		{
+			event.time = event.start.calendar(null,{sameElse: options.datetimeFormat}) + ' (' + event.duration + ')'
+		}
+		if(event.start && event.end)
+		{
+			if(event.start.format('YYYY-MM-DD') !== event.end.format('YYYY-MM-DD'))
+			{
+				event.time = event.start.calendar(null,{sameElse: options.datetimeFormat}) + ' - ' +
+					event.end.calendar(null,{sameElse: options.datetimeFormat})
+			}
 		}
 
+
 		// Massage & format ical fields
-		for(var i = 0; i < fields.length; i++)
+		for(var i = 0; i < options.fields.length; i++)
 		{
-			var value = event[fields[i]] ? event[fields[i]] : '';
-			var svgField = jQuery('#'+fields[i],template);
+			var value = event[options.fields[i]] ? event[options.fields[i]] : '';
 			if(typeof value !== 'string' && typeof value.value === 'string')
 			{
 				value = value.value;
 			}
 			if(typeof value === 'object' && value.format)
 			{
-				value = value.format(dateFormat);
+				value = value.format(options.dateFormat);
 			}
 			/* only needed for SVG
 			if(typeof value === 'string' && value.indexOf('\\n') >= 0)
@@ -408,7 +490,7 @@ var SlideMaker = function() {
 			{
 				value = '<p>'+value.replace(/\\n/g,'</p><p>')+'</p>';
 			}
-			event[fields[i]] = value;
+			event[options.fields[i]] = value;
 		}
 		return event;
 	};
@@ -424,7 +506,7 @@ var SlideMaker = function() {
 	 */
 	setTemplate = function setTemplate(template)
 	{
-		template_set = template;
+		options.templateSet = template;
 		
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', 'css/templates/'+template+'.css', true);
@@ -433,7 +515,7 @@ var SlideMaker = function() {
 
 				if(!baseCSS && template.indexOf('slides') >= 0)
 				{
-					baseCSS = this.response;
+					templateCSS = baseCSS = this.response;
 				}
 				else
 				{
@@ -453,32 +535,119 @@ var SlideMaker = function() {
 	 * Generate the DOM nodes for a slide for a single event
 	 *
 	 * @param {Object} event
-	 * @returns {undefined}
+	 * @returns {DOMNode}
 	 */
 	slideSingleEvent = function slideSingleEvent(event)
 	{
-		var template = jQuery('<div class="slide single_event ' + template_set + '"></div>');
+		var template = jQuery('<div class="slide single_event ' + options.templateSet + ' ' + event.klass +
+				'" data-date="'+(event.start ? event.start.format('YYYY-MM-DD HH:mm') : '') + '"></div>');
 		var fixed = massageEvent(event, template);
-		for(var i = 0; i < fields.length; i++)
+		for(var i = 0; i < options.fields.length; i++)
 		{
-			var value = fixed[fields[i]] ? fixed[fields[i]] : '';
+			var value = fixed[options.fields[i]] ? fixed[options.fields[i]] : '';
 			if(!value) continue;
 
-			switch(fields[i])
+			switch(options.fields[i])
 			{
 				case 'attach':
 					for(var j = 0; j < value.length; j++)
 					{
-						template.append('<div class="' + fields[i]+'" style="background-image: url(\'' + value[j] + '\');"></div>');
+						template.append('<div class="' + options.fields[i]+'" style="background-image: url(\'' + value[j] + '\');"></div>');
 					}
 					break;
 				default:
-					template.append('<span class="'+fields[i]+'">' + value + '</span>');
+					template.append('<span class="'+options.fields[i]+'">' + value + '</span>');
 					break;
 			}
 		}
 		return template;
 		
+	};
+
+	/**
+	 * Generate the DOM nodes for slide(s) showing multiple events on a single day
+	 *
+	 * It takes at least 3 events on the same day for this slide to be generated
+	 *
+	 * @param {Object[]} events
+	 * @param {moment} date
+	 * @returns {DOMNode[]}
+	 */
+	slideDayList = function slideDayList(events, date)
+	{
+		var end_date = date.clone().endOf('day');
+		var day_events = [];
+
+		for(var i = 0; i < events.length; i++)
+		{
+			if(events[i].start && events[i].start.isBetween(date, end_date))
+			{
+				day_events.push(events[i]);
+			}
+		}
+
+		if(day_events.length < 3) return false;
+
+		var template = jQuery('<div class="slide day_list ' + options.templateSet + '" data-date="'+date.format('YYYY-MM-DD')+'"><span class="summary">'+
+				date.format(options.dateFormat) +
+				'</span></div>'
+		);
+
+		for(var i = 0; i < day_events.length; i++)
+		{
+			slideSingleEvent(day_events[i])
+				.removeClass('slide single_event ' + options.templateSet)
+				.addClass('list_event')
+				.appendTo(template);
+		}
+
+		return template;
+	};
+
+	/**
+	 * Generate the DOM nodes for slide(s) showing multiple events on a single week
+	 *
+	 * It takes between 3 and 20 events on the same week for this slide to be generated
+	 *
+	 * @param {Object[]} events - List
+	 * @param {moment} date - Start of the week
+	 * @returns {DOMNode[]}
+	 */
+	slideWeekList = function slideWeekList(events, date)
+	{
+		var end_date = date.clone().endOf('week');
+		var last_date = moment();
+		var week_events = [];
+
+		for(var i = 0; i < events.length; i++)
+		{
+			if(events[i].start && events[i].start.isBetween(date, end_date))
+			{
+				week_events.push(events[i]);
+			}
+		}
+
+		if(week_events.length < 3 || week_events.length > 20) return false;
+
+		var template = jQuery('<div class="slide week_list ' + options.templateSet + '" data-date="'+date.format('YYYY-MM-DD')+'"><span class="summary">'+
+				date.format('MMM Do') + ' - ' + end_date.format('MMM Do') +
+				'</span></div>'
+		);
+
+		for(var i = 0; i < week_events.length; i++)
+		{
+			if(week_events[i].start.format('YYYY-MM-DD') !== last_date.format('YYYY-MM-DD'))
+			{
+				template.append('<span class="date">' + week_events[i].start.format('dddd') + '</span>');
+				last_date = week_events[i].start.clone().startOf('day');
+			}
+			slideSingleEvent(week_events[i])
+				.removeClass('slide single_event ' + options.templateSet)
+				.addClass('list_event')
+				.appendTo(template);
+		}
+
+		return template;
 	};
 
 	/**
@@ -488,57 +657,95 @@ var SlideMaker = function() {
 	 * The slides will be put in a div with the ID 'output':
 	 * <div id="output"/>
 	 *
-	 * @param {String|File} ical_url iCal events.  Either a URL for a file, or a File object from a user upload
-	 * @param {moment|Date} [start] Start making slides for events after this date
-	 * @param {moment|Date} [end] End date
+	 * @param {Object} _options Slide options
+	 * @param {String|File} _options.iCal iCal events.  Either a URL for a file,
+	 *	or a File object from a user upload
+	 * @param {moment|Date} [_options.startDate] Start making slides for events after this date
+	 * @param {moment|Date} [_options.endDate] End date
 	 */
-	makeSlides = function makeSlides(ical_url, start, end)
+	makeSlides = function makeSlides(_options)
 	{
 		// Clear messages from last time
-		messageNode.empty();
+		if(options.messageNode && options.messageNode.empty)
+		{
+			options.messageNode.empty();
+		}
+		
+		options = jQuery.extend({}, defaults, _options);
 
-		// Set dates if not provided
-		if(typeof start === 'undefined')
-		{
-			start = moment().startOf('week');
-		}
-		if(typeof end === 'undefined')
-		{
-			end = start.clone().endOf('week');
-		}
+		// Set theme
+		setTemplate(options.templateSet);
+
+		// Make sure stuff is set
+		_checkOptions();
 		
 		var _makeSlides = function _makeSlides(events)
 		{
-			var target = jQuery('#output');;
-			_message(start.format(dateFormat) + ' - ' + end.format(dateFormat) + ': ' + events.length + ' events found');
-			if(!events.length)
+			var target = jQuery(options.targetNode);
+			_message(options.startDate.format(options.dateFormat) + ' - ' + options.endDate.format(options.dateFormat) + ': ' + events.length + ' events found');
+			if(!events.length && !options.extraSlides.length)
 			{
 				return;
 			}
+			for(var i = 0; i < options.extraSlides.length; i++)
+			{
+				target.append(slideSingleEvent(options.extraSlides[i]));
+			}
+			for(var d = options.startDate.clone().startOf('week'); d.isSameOrBefore(options.endDate); d.add(1,'week'))
+			{
+				target.append(slideWeekList(events, d));
+			}
+			
+			for(var d = options.startDate.clone().startOf('day'); d.isSameOrBefore(options.endDate); d.add(1,'day'))
+			{
+				target.append(slideDayList(events, d));
+			}
 			for(var i = 0; i < events.length; i++)
 			{
-				slideSingleEvent(events[i]).appendTo(target).wrap('<div class="thumbnail"></div>');
+				slideSingleEvent(events[i]).appendTo(target);
 			}
+			target.children('.slide').sort(function(a, b) {
+				if(a.dataset.date < b.dataset.date) return -1;
+				if(a.dataset.date > b.dataset.date) return 1;
+				return 0;
+			})
+			.appendTo(target)
+			.wrap('<div class="thumbnail"></div>');
 
-			target.on('click', '.slide', function() { _makeImage(this);});
+			jQuery('.thumbnail',target).append('<div class="buttons">'+
+				'<div class="ui-button"><span class="ui-icon ui-icon-circle-arrow-s"></span></div>'+
+				'<div class="ui-button"><span class="ui-icon ui-icon-closethick"></span></div>'+
+				'</div>');
+
+			var _getSlide = function _getSlide(node)
+			{
+				return node.parentNode.parentNode.parentNode.firstChild;
+			}
+			target.on('click', 'div > .ui-icon-circle-arrow-s', function() { _makeImage(_getSlide(this)); return false;});
+			target.on('click', 'div > .ui-icon-closethick', function() { jQuery(_getSlide(this).parentNode).remove();});
 		}
 
 		// Load events
-		if(typeof ical_url === 'string')
+		if(typeof options.iCal === 'string')
 		{
-			fetchICal(ical_url, start, end)
+			fetchICal(options.iCal, options.startDate, options.endDate)
 				.then(function(events) {
 					// Make slides
 					_makeSlides(events);
-				}, function() {_message('Unable to load ' + ical_url, 'error')});
+				}, function() {_message('Unable to load ' + options.iCal, 'error')});
 		}
-		else if (typeof ical_url.name === 'string')
+		else if (options.iCal && typeof options.iCal.name === 'string')
 		{
-			readICalFile(ical_url, start, end)
+			readICalFile(options.iCal, options.startDate, options.endDate)
 				.then(function(events) {
 					// Make slides
 					_makeSlides(events);
 				}, function() {_message('Unable to load file', 'error')});
+		}
+		else if (options.iCal && typeof options.iCal === 'object' && typeof options.iCal.length !== 'undefined')
+		{
+			// Object - just pass it along
+			_makeSlides(options.iCal);
 		}
 	};
 
@@ -548,12 +755,8 @@ var SlideMaker = function() {
 	templateCSS = baseCSS;
 
 	return {
-		dateFormat: dateFormat,
 		_fetchICal: fetchICal,
 		makeSlides: makeSlides,
-		setMessageNode: function setMessageNode(node) {
-			messageNode = jQuery(node);
-		},
 		setTemplate: setTemplate,
 	};
 }();

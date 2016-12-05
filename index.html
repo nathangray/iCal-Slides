@@ -55,10 +55,10 @@ The idea is you can then use these slides in presentation to announce upcoming e
 
     <div id="messages"></div>
 	<fieldset>
-		<label for="start_date">Dates</label>
-		<input type="date" id="start_date"/>
+		<label for="startDate">Dates</label>
+		<input type="date" id="startDate"/>
 		-
-		<input type="date" id="end_date"/>
+		<input type="date" id="endDate"/>
 	</fieldset>
 	<fieldset>
 		<label for="template">Theme</label>
@@ -74,7 +74,23 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		<input id="file" type="file" name="file" onchange="fileChanged(event)" class="ui-widget"/>
 	</fieldset>
 	<div id="output"></div>
-	<p>Click slide to download as image</p>
+	<div id="extras">
+		<h3>Options</h3>
+		<div id="options">
+			These aren't actually part of the library, just extras using it<br />
+			<label for="silencePhone">Silence phone</label>
+			<span class="checkbox">
+				<input type="checkbox" id="silencePhone" /><label for="silencePhone"></label>
+			</span><br />
+			<div class="ui-button" onclick="slideShow()">Slideshow<output id="speed_label" for="speed">10</output></div><input id="speed" type="range" min="5" max="30" value="10" step="5"/>
+		</div>
+		<h3>Extra Slides</h3>
+		<div id="extraSlides">
+			<input id="summary"/><br />
+			<textarea id="description"></textarea>
+			<div id="add_slide" class="ui-icon ui-icon-circle-plus">+</div>
+		</div>
+	</div>
 	<p>Try some pre-built examples:<ul>
 	<li><a href="index.html?template=brown_vintage&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/daily_recur.ics&from=2012-10-01&to=2012-12-01">Daily</a></li>
 	<li><a href="index.html?template=blue_flowers&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/recur_instances_finite.ics&from=2012-10-01&to=2012-12-01">Recurrence with end date</a></li>
@@ -82,6 +98,20 @@ The idea is you can then use these slides in presentation to announce upcoming e
 	<li><a href="index.html?template=paisly_on_black&iCal=https://raw.githubusercontent.com/nathangray/iCal-Slides/master/test/image_attachment.ics">Image attachment</a></li>
 	</ul></p>
   <script>
+	// Slide options
+	var options = {
+		targetNode: '#output',
+		messageNode: '#messages',
+		extraSlides: []
+	};
+
+	// Make the slides
+	function makeSlides()
+	{
+		jQuery(options.targetNode).empty();
+		SlideMaker.makeSlides(options);
+	}
+
 	  // Renderer for theme menu
 	  $.widget( "custom.iconselectmenu", $.ui.selectmenu, {
       _renderItem: function( ul, item ) {
@@ -102,22 +132,66 @@ The idea is you can then use these slides in presentation to announce upcoming e
       }
     });
 
+	/* Quick & simple slideshow */
+	var slideshow = null;
+	function slideShow() {
+		if(slideshow !== null)
+		{
+			clearInterval(slideshow);
+		}
+
+		var output = $("#output");
+		var o = output[0];
+		output.addClass("slideshow");
+		$("#output > div:gt(0)").hide();
+
+		if (o.requestFullscreen) {
+			o.requestFullscreen();
+		} else if (o.webkitRequestFullscreen) {
+			o.webkitRequestFullscreen();
+		} else if (o.mozRequestFullScreen) {
+			o.mozRequestFullScreen();
+		} else if (o.msRequestFullscreen) {
+			o.msRequestFullscreen();
+		}
+
+		slideshow = setInterval(function() {
+		  $('#output > div:first')
+			.fadeOut(1000)
+			.next()
+			.fadeIn(1000)
+			.end()
+			.appendTo('#output');
+		}, jQuery('#speed').val()*1000);
+		jQuery('body').on('keydown', function(){
+			clearInterval(slideshow);
+			output.removeClass("slideshow");
+			
+			if (document.exitFullscreen) {
+				document.exitFullscreen();
+			} else if (document.webkitExitFullscreen) {
+				document.webkitExitFullscreen();
+			} else if (document.mozRequestFullScreen) {
+				document.mozRequestFullScreen();
+			} else if (document.msExitFullscreen) {
+				document.msExitFullscreen();
+			}
+			$("#output > div").show();
+		});
+	}
 	/**
 	 * Load & parse a local iCal file
 	 */
 	function fileChanged(event) {
-		jQuery('#output').empty();
+		jQuery(options.targetNode).empty();
 		for(var i = 0; i < event.target.files.length; i++)
 		{
-			var file = event.target.files[i];
-			SlideMaker.makeSlides(file,
-				moment(jQuery('#start_date').val()),
-				moment(jQuery('#end_date').val())
-			);
+			options.iCal = event.target.files[i];
+			makeSlides();
 		}
 	}
 
-	 jQuery(document).ready(function() {
+	jQuery(document).ready(function() {		
 		// Read anything set in query
 		var $_GET = {};
 		if(document.location.toString().indexOf('?') !== -1) {
@@ -134,51 +208,86 @@ The idea is you can then use these slides in presentation to announce upcoming e
 			   $_GET[aux[0]] = aux[1];
 			}
 		}
+		jQuery('input[type="date"]').on('change', function() {
+			jQuery(options.targetNode).empty();
+			options[this.id] = jQuery(this).val();
+			makeSlides();
+		})
+
+		// Bind silence phone
+		jQuery('#silencePhone').on('change', function() {
+			if(jQuery(this).is(':checked'))
+			{
+				options.extraSlides.push({
+					klass: 'silencePhone',
+					summary: 'Please silence your phone',
+					description: '<img src="images/bell.svg"/>'
+				});
+				makeSlides();
+			}
+			else
+			{
+				options.extraSlides.splice(
+					options.extraSlides.findIndex(function(e) {return e.klass === 'silencePhone';}),
+					1
+				);
+				jQuery('.silencePhone', options.targetNode).parent().remove();
+			}
+		});
+
+		// Bind slideshow slider value
+		jQuery('#speed').on('change', function() {
+			jQuery('#speed_label').val(jQuery('#speed').val());
+		});
+
+		// Bind add slide
+		jQuery('#add_slide').on('click', function() {
+			options.extraSlides.push({
+				klass: 'custom',
+				summary: jQuery('#summary').val(),
+				description: jQuery('#description').val()
+			});
+			makeSlides();
+			jQuery('#summary').val('');
+			jQuery('#description').val('');
+		})
 
 		// initialize dates & theme
-		var start = $_GET.from ? moment($_GET.from) : moment().startOf('week').add(1,'w');
-		var end = $_GET.to ? moment($_GET.to) : moment(start).endOf('week').add(1,'w');
-		jQuery('#start_date').val(start.format('YYYY-MM-DD'));
-		jQuery('#end_date').val(end.format('YYYY-MM-DD'));
+		options.startDate = $_GET.from ? moment($_GET.from) : moment().startOf('week').add(1,'w');
+		options.endDate = $_GET.to ? moment($_GET.to) : moment(options.startDate).endOf('week').add(1,'w');
+		jQuery('#startDate').val(options.startDate.format('YYYY-MM-DD'));
+		jQuery('#endDate').val(options.endDate.format('YYYY-MM-DD'));
 		if($_GET.template)
 		{
 			jQuery('#template').val($_GET.template);
-			SlideMaker.setTemplate($_GET.template);
+			options.templateSet = $_GET.template;
 		}
 
 		jQuery('#template').iconselectmenu({
 			change: function() {
-				jQuery('#output').empty();
-				SlideMaker.setTemplate(this.value);
-				var file_node = jQuery('#file')[0];
-				var file = $_GET.iCal;
-				if(file_node && file_node.files && file_node.files.length)
-				{
-					for(var i = 0; i < file_node.files.length; i++)
-					{
-						file = file_node.files[i];
-					}
-				}
-				SlideMaker.makeSlides(file,
-					moment(jQuery('#start_date').val()),
-					moment(jQuery('#end_date').val())
-				);
+				jQuery(options.targetNode).empty();
+				options.templateSet = this.value;
+				SlideMaker.makeSlides(options);
 			}
 		})
 			.iconselectmenu()
 			.iconselectmenu( "menuWidget" )
 			.addClass( "ui-menu-icons thumbnail" );
 
-		// Tell it where to put messages
-		SlideMaker.setMessageNode(document.getElementById('messages'));
+		jQuery('#extras').accordion({
+			collapsible: true
+		});
+		
+		if($_GET.speed)
+		{
+			jQuery('#speed').val($_GET.speed);
+		}
 
 		// If URL is passed in, run it
 		if($_GET.iCal)
 		{
-			SlideMaker.makeSlides($_GET.iCal,
-				moment(jQuery('#start_date').val()),
-				moment(jQuery('#end_date').val())
-			);
+			options.iCal = $_GET.iCal;
+			makeSlides();
 		}
 	});
 </script>
