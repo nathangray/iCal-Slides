@@ -88,6 +88,7 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		<div id="extraSlides">
 			<input id="summary"/><br />
 			<textarea id="description"></textarea>
+			<div id="add_slide" class="ui-icon ui-icon-circle-plus">+</div>
 		</div>
 	</div>
 	<p>Try some pre-built examples:<ul>
@@ -238,6 +239,18 @@ The idea is you can then use these slides in presentation to announce upcoming e
 		jQuery('#speed').on('change', function() {
 			jQuery('#speed_label').val(jQuery('#speed').val());
 		});
+
+		// Bind add slide
+		jQuery('#add_slide').on('click', function() {
+			options.extraSlides.push({
+				klass: 'custom',
+				summary: jQuery('#summary').val(),
+				description: jQuery('#description').val()
+			});
+			makeSlides();
+			jQuery('#summary').val('');
+			jQuery('#description').val('');
+		})
 
 		// initialize dates & theme
 		options.startDate = $_GET.from ? moment($_GET.from) : moment().startOf('week').add(1,'w');
