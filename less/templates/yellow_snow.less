@@ -1,0 +1,79 @@
+.yellow_snow {
+  background-image: data-uri('../../images/yellow_snow.jpg') !important;
+  width: 1920px;
+  height: 1200px;
+  color: #2f1b06;
+  padding-top: 50px;
+  
+	.list_event {
+	  span.summary {
+		right: 10ex;
+		left: auto;
+	  }
+	  span.start_time {
+		  left: auto;
+		  right: 1ex;
+	  }
+	}
+	span {
+		text-align: right;
+		right: 10ex;
+
+		&.summary {
+			right: 10ex;
+			left: auto;
+		}
+		&.description {
+			left: 10%;
+			width: 75%;
+		}
+		&.start_time {
+			right: 10px;
+			left: auto;
+		}
+	}
+	.slide.day_list > .summary {
+		margin-top: 2em;
+	}
+	.slide.week_list > .summary {
+		margin-top: 2em;
+	}
+}
+.yellow_snow.single_event {
+	.attach {
+		background-position: top right;
+
+		width: 50%;
+		height: 50%;
+
+		position: absolute;
+		bottom: 0px;
+		right: 0px;
+
+		filter: sepia(20%);
+	}
+
+	.attach:not(:first-of-type) {
+		width: 50%;
+		height: 50%;
+		top: auto;
+		left: -10px;
+		background-size:cover;
+		background-position: center center;
+		-webkit-mask-image: url(../../images/snowflake.png);
+		-webkit-mask-size: contain;
+		-webkit-mask-repeat: no-repeat;
+		-webkit-mask-position: center;
+		&:nth-of-type(2) {
+			bottom: 0%;
+			transform: rotate(-20deg);
+		}
+		&:nth-of-type(3) {
+			bottom: 25%;
+			transform: rotate(12deg);
+		}
+		&:nth-of-type(4) {
+			bottom: 50%;
+		}
+	}
+}
