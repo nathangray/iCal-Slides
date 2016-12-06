@@ -150,7 +150,7 @@
   bottom: auto;
   background-size: cover;
   background-position: center center;
-  -webkit-mask-image: url(../../images/orange_flower.png);
+  -webkit-mask-image: url(../images/orange_flower.png);
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: top right;
@@ -299,7 +299,7 @@
   left: -10px;
   background-size: cover;
   background-position: center center;
-  -webkit-mask-image: url(../../images/snowflake.png);
+  -webkit-mask-image: url(../images/snowflake.png);
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
